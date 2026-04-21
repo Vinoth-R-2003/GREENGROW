@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 h-[calc(100vh-140px)] flex flex-col">
+    <!-- Chat Header -->
+    <div class="bg-white rounded-t-xl shadow-sm border border-slate-200 p-4 flex items-center gap-4 flex-shrink-0 z-10">
+        <a href="{% url 'conversations' %}" class="text-slate-400 hover:text-emerald-600 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+        </a>
+        <div class="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold">
+            {{ other_user.username|slice:":1"|upper }}
+        </div>
+        <div class="flex-1">
+            <a href="{% url 'profile_user' other_user.username %}" class="hover:text-emerald-600 transition-colors inline-block">
+                <h2 class="font-bold text-slate-900 hover:text-emerald-700 transition-colors">{{ other_user.username }}</h2>
+            </a>
+            <p class="text-xs text-slate-500">{% if other_user.is_farmer %}Farmer{% else %}Consumer{% endif %}</p>
+        </div>
+
+        <!-- Call Buttons -->
+        <button onclick="startAudioCall()"
+            class="p-2 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-600 transition-colors"
+            title="Audio Call">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+        </button>
+        <button onclick="startVideoCall()"
+            class="p-2 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-600 transition-colors"
+            title="Video Call">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Messages Area -->
+    <div class="flex-1 bg-slate-50 overflow-y-auto p-4 space-y-4 border-x border-slate-200" id="messages-container">
+        <!-- Call History Section -->
+        {% if call_logs %}
+        <div class="mb-4">
+            <div class="text-xs text-slate-400 text-center mb-3 font-semibold uppercase tracking-wide">Call History
+            </div>
+            {% for call in call_logs %}
+            <div class="flex justify-center mb-2">
+                <div class="bg-white border border-slate-200 rounded-lg px-4 py-2 shadow-sm max-w-md w-full">
+                    <div class="flex items-center gap-3">
+                        <!-- Call Icon -->
+                        <div class="flex-shrink-0">
+                            {% if call.status == 'missed' %}
+                            <div class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                            </div>
+                            {% elif call.status == 'completed' %}
+                            <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                            </div>
+                            {% else %}
+                            <div class="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-600" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Call Info -->
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-semibold text-sm text-slate-900">
+                                    {% if call.caller == user %}
+                                    {% if call.status == 'missed' %}Missed Call{% else %}Outgoing Call{% endif %}
+                                    {% else %}
+                                    {% if call.status == 'missed' %}
+                                    <span class="text-red-600">Missed Call</span>
+                                    {% else %}
+                                    Incoming Call
+                                    {% endif %}
+                                    {% endif %}
+                                </span>
+                                {% if call.call_type == 'video' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                {% endif %}
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                                <span>{{ call.started_at|date:"M d, g:i A" }}</span>
+                                {% if call.duration %}
+                                <span>•</span>
+                                <span>{{ call.duration }}s</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Status Badge -->
+                        <div class="flex-shrink-0">
+                            {% if call.status == 'missed' %}
+                            <span
+                                class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700 font-medium">Missed</span>
+                            {% elif call.status == 'completed' %}
+                            <span
+                                class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">Completed</span>
+                            {% elif call.status == 'rejected' %}
+                            <span
+                                class="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 font-medium">Declined</span>
+                            {% elif call.status == 'cancelled' %}
+                            <span
+                                class="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 font-medium">Cancelled</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            <div class="border-t border-slate-300 my-4"></div>
+        </div>
+        {% endif %}
+
+        <!-- Messages -->
+        {% for message in messages %}
+        <div class="flex {% if message.sender == user %}justify-end{% else %}justify-start{% endif %}">
+            <div class="max-w-[75%] rounded-2xl px-4 py-2 shadow-sm 
+                    {% if message.sender == user %}
+                        bg-emerald-600 text-white rounded-tr-none
+                    {% else %}
+                        bg-white text-slate-800 border border-slate-200 rounded-tl-none
+                    {% endif %}">
+                <div class="flex items-center gap-2">
+                    <div>
+                        <p>{{ message.content }}</p>
+                        <p class="text-[10px] opacity-75 mt-1 text-right">{{ message.timestamp|time:"g:i A" }}</p>
+                    </div>
+                    {% if message.sender == user %}
+                    <a href="{% url 'delete_message' message.id %}" onclick="return confirm('Delete this message?')"
+                        class="text-emerald-100 hover:text-white transition-colors opacity-50 hover:opacity-100"
+                        title="Delete">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center text-slate-400 py-10">
+            <p>Start a new conversation with {{ other_user.username }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Input Area -->
+    <div class="bg-white rounded-b-xl shadow-sm border border-slate-200 p-4 flex-shrink-0">
+        <form method="post" class="flex items-center gap-3">
+            {% csrf_token %}
+            <input type="text" name="content" required placeholder="Type a message..." autofocus
+                class="flex-1 bg-slate-50 border-none rounded-full px-6 py-3 focus:ring-2 focus:ring-emerald-500 transition-all outline-none">
+            <button type="submit"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-full shadow-md transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform rotate-90" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Call Modal -->
+<div id="callModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
+    <!-- Incoming Call -->
+    <div id="incomingCall" class="hidden bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+        <div class="mb-6">
+            <div
+                class="h-24 w-24 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-3xl mx-auto mb-4">
+                {{ other_user.username|slice:":1"|upper }}
+            </div>
+            <h3 class="text-2xl font-bold text-slate-900 mb-2">{{ other_user.username }}</h3>
+            <p id="incomingCallType" class="text-slate-500">Incoming Call...</p>
+        </div>
+        <div class="flex gap-4 justify-center">
+            <button onclick="callManager.rejectCall()"
+                class="bg-red-600 hover:bg-red-700 text-white p-4 rounded-full shadow-lg transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <button onclick="callManager.acceptCall()"
+                class="bg-green-600 hover:bg-green-700 text-white p-4 rounded-full shadow-lg transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Outgoing Call -->
+    <div id="outgoingCall" class="hidden bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+        <div class="mb-6">
+            <div
+                class="h-24 w-24 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-3xl mx-auto mb-4 animate-pulse">
+                {{ other_user.username|slice:":1"|upper }}
+            </div>
+            <h3 class="text-2xl font-bold text-slate-900 mb-2">{{ other_user.username }}</h3>
+            <p id="outgoingCallType" class="text-slate-500">Calling...</p>
+        </div>
+        <button onclick="callManager.endCall()"
+            class="bg-red-600 hover:bg-red-700 text-white p-4 rounded-full shadow-lg transition-all mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Active Call -->
+    <div id="activeCall" class="hidden w-full h-full flex flex-col">
+        <!-- Video Container -->
+        <div id="videoContainer" class="flex-1 relative bg-slate-900">
+            <video id="remoteVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+            <video id="localVideo" autoplay playsinline muted
+                class="absolute bottom-4 right-4 w-48 h-36 object-cover rounded-lg border-2 border-white shadow-lg"></video>
+
+            <!-- Call Info Overlay -->
+            <div class="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full">
+                <span id="callTimer">00:00</span>
+            </div>
+        </div>
+
+        <!-- Call Controls -->
+        <div class="bg-slate-800 p-6 flex justify-center gap-4">
+            <button id="muteBtn" onclick="callManager.toggleMute()"
+                class="bg-slate-600 hover:bg-slate-700 text-white p-4 rounded-full transition-all" title="Mute">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+            </button>
+            <button id="videoBtn" onclick="callManager.toggleVideo()"
+                class="bg-slate-600 hover:bg-slate-700 text-white p-4 rounded-full transition-all"
+                title="Toggle Camera">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+            </button>
+            <button onclick="callManager.endCall()"
+                class="bg-red-600 hover:bg-red-700 text-white p-4 rounded-full transition-all" title="End Call">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/webrtc-call.js' %}"></script>
+<script>
+    // Scroll to bottom of chat
+    const container = document.getElementById('messages-container');
+    container.scrollTop = container.scrollHeight;
+
+    // Initialize call manager and WebSocket connection immediately
+    // Use sorted IDs to ensure both users connect to the same room
+    const userId1 = {{ user.id }};
+    const userId2 = {{ other_user.id }};
+    const roomName = userId1 < userId2 ? `${userId1}_${userId2}` : `${userId2}_${userId1}`;
+    callManager = new CallManager(roomName, {{ user.id }}, {{ other_user.id }});
+    // Initialize WebSocket to listen for incoming calls
+    callManager.initializeWebSocket();
+
+    // Start audio call
+    function startAudioCall() {
+        callManager.startCall('audio');
+    }
+
+    // Start video call
+    function startVideoCall() {
+        callManager.startCall('video');
+    }
+</script>
+{% endblock %}

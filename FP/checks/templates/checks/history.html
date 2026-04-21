@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Check History — GREENGROW{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <a href="{% url 'checks_dashboard' %}" class="text-slate-500 hover:text-emerald-600 text-sm flex items-center gap-1 mb-2 transition-colors">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Checks
+            </a>
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900">📋 Check History</h1>
+        </div>
+        <a href="{% url 'checks_dashboard' %}"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-all shadow-md shadow-emerald-200">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            New Check
+        </a>
+    </div>
+
+    <!-- Checks Grid -->
+    {% if checks %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for check in checks %}
+        <a href="{% url 'check_result' check.pk %}" class="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all duration-300 group">
+            <!-- Image -->
+            <div class="aspect-video bg-slate-100 overflow-hidden relative">
+                {% if check.image %}
+                <img src="{{ check.image.url }}" alt="Plant check" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                {% else %}
+                <div class="w-full h-full flex items-center justify-center text-4xl text-slate-300">🌿</div>
+                {% endif %}
+
+                <!-- Delete Action -->
+                <div class="absolute top-2 right-2 opacity-100 transition-opacity z-10">
+                    <form action="{% url 'delete_check' check.pk %}" method="post" onsubmit="return confirm('Delete this scan history?');">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-md transition-colors" title="Delete Check" onclick="event.preventDefault(); this.closest('form').submit();">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-4">
+                <!-- Type Badge -->
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-lg">{{ check.check_type_icon }}</span>
+                        <span class="text-xs font-semibold uppercase tracking-wider
+                            {% if check.check_type == 'health' %}text-emerald-600
+                            {% elif check.check_type == 'disease' %}text-blue-600
+                            {% elif check.check_type == 'encyclopedia' %}text-purple-600
+                            {% else %}text-amber-600{% endif %}">
+                        {{ check.get_check_type_display }}
+                    </span>
+                </div>
+
+                <!-- Title -->
+                <h3 class="font-semibold text-slate-900 mb-2 line-clamp-2">{{ check.result_title|default:"Processing..." }}</h3>
+
+                <!-- Summary -->
+                {% if check.result_summary %}
+                <p class="text-sm text-slate-500 line-clamp-2 mb-3">{{ check.result_summary }}</p>
+                {% endif %}
+
+                <!-- Footer -->
+                <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                    {% if check.severity %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
+                        {% if check.severity == 'healthy' %}bg-emerald-100 text-emerald-700
+                        {% elif check.severity == 'low' %}bg-yellow-100 text-yellow-700
+                        {% elif check.severity == 'medium' %}bg-orange-100 text-orange-700
+                        {% elif check.severity == 'high' %}bg-red-100 text-red-700
+                        {% else %}bg-red-200 text-red-800{% endif %}">
+                        {{ check.get_severity_display }}
+                    </span>
+                    {% endif %}
+                    <span class="text-xs text-slate-400">{{ check.created_at|timesince }} ago</span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
+        <div class="text-5xl mb-4">🔍</div>
+        <h3 class="text-xl font-semibold text-slate-900 mb-2">No checks yet</h3>
+        <p class="text-slate-500 max-w-sm mx-auto mb-6">
+            Start by uploading a plant photo to get instant AI-powered analysis.
+        </p>
+        <a href="{% url 'checks_dashboard' %}"
+            class="inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition-all shadow-md shadow-emerald-200">
+            Start Your First Check
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

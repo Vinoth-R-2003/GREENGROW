@@ -1,0 +1,56 @@
+{
+    "name": "GREENGROW - Farmer's Marketplace",
+    "short_name": "GREENGROW",
+    "description": "Connect farmers and consumers for fresh, local produce",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "background_color": "#ffffff",
+    "theme_color": "#10b981",
+    "icons": [
+        {
+            "src": "/static/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/static/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "shopping",
+        "food",
+        "business"
+    ],
+    "shortcuts": [
+        {
+            "name": "Marketplace",
+            "short_name": "Market",
+            "description": "Browse fresh produce",
+            "url": "/market/",
+            "icons": [
+                {
+                    "src": "/static/icons/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "My Orders",
+            "short_name": "Orders",
+            "description": "View your orders",
+            "url": "/market/orders/",
+            "icons": [
+                {
+                    "src": "/static/icons/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ]
+}

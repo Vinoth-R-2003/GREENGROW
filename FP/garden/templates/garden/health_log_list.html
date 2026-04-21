@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <div class="mb-6 flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-gray-800">Health Log for {{ user_plant.plant.name }}</h1>
+        <a href="{% url 'user_plant_detail' user_plant.id %}" class="text-green-600 hover:text-green-800">
+            &larr; Back to Plant
+        </a>
+    </div>
+
+    <!-- Health Log Form -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4 text-red-600">Report Issue</h2>
+        <form method="post" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Issue Type</label>
+                    {% render_field form.issue_type class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                    focus:border-red-500 focus:ring-red-500" %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Severity</label>
+                    {% render_field form.severity class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                    focus:border-red-500 focus:ring-red-500" %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Status</label>
+                    {% render_field form.status class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                    focus:border-red-500 focus:ring-red-500" %}
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Notes</label>
+                {% render_field form.notes class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                focus:border-red-500 focus:ring-red-500" rows="3" %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Photo (Optional)</label>
+                {% render_field form.image class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4
+                file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700
+                hover:file:bg-red-100" %}
+            </div>
+            <button type="submit"
+                class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                Log Issue
+            </button>
+        </form>
+    </div>
+
+    <!-- Health Logs List -->
+    <div class="space-y-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Issue History</h2>
+        {% if logs %}
+        {% for log in logs %}
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div
+                class="p-4 border-l-4 {% if log.status == 'Resolved' %}border-green-500{% else %}border-red-500{% endif %}">
+                <div class="flex flex-col md:flex-row gap-4">
+                    {% if log.image %}
+                    <div class="w-full md:w-32 h-32 flex-shrink-0">
+                        <img src="{{ log.image.url }}" alt="Issue photo" class="w-full h-full object-cover rounded-md">
+                    </div>
+                    {% endif %}
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-lg font-bold text-gray-800">{{ log.issue_type }}</h3>
+                            <span
+                                class="text-sm px-2 py-1 rounded-full {% if log.status == 'Resolved' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ log.status }}
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-2">Severity: <span class="font-medium">{{ log.severity
+                                }}</span> • Logged: {{ log.date_logged }}</p>
+                        <p class="text-gray-700">{{ log.notes }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="text-gray-500 text-center py-4">No health issues recorded. Good job!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

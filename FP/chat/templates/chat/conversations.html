@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-4 border-b border-slate-100 bg-slate-50">
+            <h2 class="text-xl font-bold text-slate-900">Messages</h2>
+        </div>
+
+        <div class="divide-y divide-slate-100">
+            {% for contact in contacts %}
+            <a href="{% url 'chat_room' contact.id %}"
+                class="flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors">
+                <div
+                    class="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold flex-shrink-0">
+                    {{ contact.username|slice:":1"|upper }}
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-semibold text-slate-900">{{ contact.username }}</h3>
+                    <p class="text-sm text-slate-500 truncate">Click to chat</p>
+                </div>
+                <div class="text-xs text-slate-400">
+                    &rarr;
+                </div>
+            </a>
+            {% empty %}
+            <div class="p-8 text-center text-slate-500">
+                <p>No messages yet.</p>
+                <p class="text-sm mt-2">Browse the <a href="{% url 'market_index' %}"
+                        class="text-emerald-600 hover:underline">marketplace</a> to contact farmers.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}My Garden — GREENGROW{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4">
+    <!-- Hero Section -->
+    <div class="text-center mb-10">
+        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
+            🌿 <span class="text-emerald-600">MY GARDEN</span>
+        </h1>
+        <p class="text-slate-500 text-lg max-w-2xl mx-auto">
+            Manage your plants, discover new ones, and get instant AI-powered health analysis.
+        </p>
+    </div>
+
+    <!-- Feature Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-12">
+        <!-- Plant Health Checkup -->
+        <a href="{% url 'upload_check' 'health' %}"
+            class="group relative bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-xl hover:border-emerald-300 transition-all duration-300 overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
+            <div class="relative">
+                <div class="w-14 h-14 rounded-xl bg-emerald-100 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform">
+                    💚
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Plant Health Checkup</h3>
+                <p class="text-slate-500 text-sm leading-relaxed mb-4">
+                    Get a comprehensive health analysis of your plant including leaf condition, growth stage, and stress indicators.
+                </p>
+                <div class="flex items-center text-emerald-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                    Check Now
+                    <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </div>
+        </a>
+
+        <!-- Plant Disease Detection -->
+        <a href="{% url 'upload_check' 'disease' %}"
+            class="group relative bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-xl hover:border-blue-300 transition-all duration-300 overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
+            <div class="relative">
+                <div class="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform">
+                    🔬
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Disease Detection</h3>
+                <p class="text-slate-500 text-sm leading-relaxed mb-4">
+                    Identify diseases, infections, and pest damage with AI-powered image analysis and get treatment advice.
+                </p>
+                <div class="flex items-center text-blue-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                    Detect Now
+                    <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </div>
+        </a>
+
+        <!-- Crop Yield Prediction -->
+        <a href="{% url 'upload_check' 'yield' %}"
+            class="group relative bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-xl hover:border-amber-300 transition-all duration-300 overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
+            <div class="relative">
+                <div class="w-14 h-14 rounded-xl bg-amber-100 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform">
+                    📊
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Yield Prediction</h3>
+                <p class="text-slate-500 text-sm leading-relaxed mb-4">
+                    Predict potential crop yield, identify limiting factors, and get optimization recommendations.
+                </p>
+                <div class="flex items-center text-amber-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                    Predict Now
+                    <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </div>
+        </a>
+
+        <!-- Plants Encyclopedia -->
+        <a href="{% url 'plant_list' %}"
+            class="group relative bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-xl hover:border-purple-300 transition-all duration-300 overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
+            <div class="relative">
+                <div class="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform">
+                    🌿
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Plants Encyclopedia</h3>
+                <p class="text-slate-500 text-sm leading-relaxed mb-4">
+                    Browse our directory of plants or upload a photo to identify a plant.
+                </p>
+                <div class="flex items-center text-purple-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                    Browse Now
+                    <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </div>
+        </a>
+
+        <!-- My Personal Garden -->
+        <a href="{% url 'my_garden' %}"
+            class="group relative bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-xl hover:border-emerald-300 transition-all duration-300 overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
+            <div class="relative">
+                <div class="w-14 h-14 rounded-xl bg-emerald-100 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform">
+                    🪴
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">My Personal Garden</h3>
+                <p class="text-slate-500 text-sm leading-relaxed mb-4">
+                    Track your personal plants, record harvests, manage tasks and log health updates.
+                </p>
+                <div class="flex items-center text-emerald-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                    Manage Garden
+                    <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Recent Checks -->
+    {% if recent_checks %}
+    <div class="mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-slate-900">Recent Checks</h2>
+            <a href="{% url 'check_history' %}" class="text-emerald-600 hover:text-emerald-700 text-sm font-semibold flex items-center gap-1">
+                View All
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for check in recent_checks %}
+            <a href="{% url 'check_result' check.pk %}" class="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-all group">
+                <div class="aspect-video bg-slate-100 overflow-hidden relative">
+                    {% if check.image %}
+                    <img src="{{ check.image.url }}" alt="Plant check" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    {% endif %}
+
+
+                </div>
+                <div class="p-3">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-lg">{{ check.check_type_icon }}</span>
+                        <span class="text-xs font-semibold uppercase tracking-wider
+                            {% if check.check_type == 'health' %}text-emerald-600
+                            {% elif check.check_type == 'disease' %}text-blue-600
+                            {% elif check.check_type == 'encyclopedia' %}text-purple-600
+                            {% else %}text-amber-600{% endif %}">
+                            {{ check.get_check_type_display }}
+                        </span>
+                    </div>
+                    <p class="text-sm font-medium text-slate-900 truncate">{{ check.result_title|default:"Processing..." }}</p>
+                    <div class="flex items-center justify-between mt-2">
+                        {% if check.severity %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                            {% if check.severity == 'healthy' %}bg-emerald-100 text-emerald-700
+                            {% elif check.severity == 'low' %}bg-yellow-100 text-yellow-700
+                            {% elif check.severity == 'medium' %}bg-orange-100 text-orange-700
+                            {% elif check.severity == 'high' %}bg-red-100 text-red-700
+                            {% else %}bg-red-200 text-red-800{% endif %}">
+                            {{ check.get_severity_display }}
+                        </span>
+                        {% endif %}
+                        <span class="text-xs text-slate-400">{{ check.created_at|timesince }} ago</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

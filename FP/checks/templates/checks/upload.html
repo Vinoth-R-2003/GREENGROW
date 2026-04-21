@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ meta.title }} — GREENGROW{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4">
+    <!-- Header -->
+    <div class="mb-8">
+        <a href="{% url 'checks_dashboard' %}" class="text-slate-500 hover:text-emerald-600 text-sm flex items-center gap-1 mb-4 transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Back to Checks
+        </a>
+        <div class="flex items-center gap-3 mb-2">
+            <span class="text-3xl">{{ meta.icon }}</span>
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900">{{ meta.title }}</h1>
+        </div>
+        <p class="text-slate-500">{{ meta.description }}</p>
+    </div>
+
+    <!-- Upload Card -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <form method="post" enctype="multipart/form-data" id="upload-form">
+            {% csrf_token %}
+
+            {% if check_type == 'yield' %}
+                <div class="p-8 space-y-6 bg-slate-50 border-b border-slate-100">
+                    <p class="text-sm text-slate-500 mb-4">Please provide environmental details to process the best crop recommendation.</p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Temperature (°C) *</label>
+                            {{ form.temperature }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Soil Type *</label>
+                            {{ form.soil_type }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Rainfall (mm/year) *</label>
+                            {{ form.rainfall }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Proposed Crop (Optional)</label>
+                            <span class="block text-xs text-slate-400 mb-1">We will evaluate this crop or suggest empty for general recommendation.</span>
+                            {{ form.proposed_crop }}
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+            <!-- Drop Zone -->
+            <div id="drop-zone"
+                class="relative p-8 border-2 border-dashed border-slate-300 m-5 rounded-xl cursor-pointer
+                       hover:border-{{ meta.color }}-400 hover:bg-{{ meta.color }}-50/30 transition-all duration-300"
+                onclick="document.getElementById('image-input').click()">
+
+                <!-- Default State -->
+                <div id="upload-prompt" class="text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <p class="text-slate-700 font-semibold mb-1">Upload or Capture a Photo</p>
+                    <p class="text-slate-400 text-sm mb-4">Drag & drop, click to browse, or use your camera</p>
+                    <div class="flex justify-center gap-3">
+                        <span class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            Browse Files
+                        </span>
+                        <button type="button" id="camera-btn"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-200 transition-colors"
+                            onclick="event.stopPropagation(); openCamera()">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            Camera
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Preview State -->
+                <div id="image-preview" class="hidden">
+                    <img id="preview-img" src="" alt="Preview" class="w-full max-h-80 object-contain rounded-lg mx-auto">
+                    <p id="file-name" class="text-center text-sm text-slate-500 mt-3"></p>
+                </div>
+
+                {{ form.image }}
+            </div>
+
+            <!-- Camera Capture (hidden by default) -->
+            <div id="camera-section" class="hidden m-5">
+                <div class="rounded-xl overflow-hidden bg-black relative">
+                    <video id="camera-stream" autoplay playsinline class="w-full"></video>
+                    <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
+                        <button type="button" onclick="capturePhoto()"
+                            class="w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-105 transition-transform">
+                            <div class="w-10 h-10 bg-red-500 rounded-full"></div>
+                        </button>
+                        <button type="button" onclick="closeCamera()"
+                            class="w-14 h-14 bg-white/80 rounded-full shadow-lg flex items-center justify-center hover:scale-105 transition-transform">
+                            <svg class="w-6 h-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <canvas id="camera-canvas" class="hidden"></canvas>
+            </div>
+            {% endif %}
+
+            <!-- Submit / Check Button -->
+            <div class="px-5 py-5">
+                {% if check_type == 'yield' %}
+                <button type="submit" id="submit-btn"
+                    class="w-full py-3.5 px-6 rounded-xl font-bold text-white text-lg transition-all duration-300 bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200 cursor-pointer hover:scale-[1.02]">
+                {% else %}
+                <button type="submit" id="submit-btn" disabled
+                    class="w-full py-3.5 px-6 rounded-xl font-bold text-white text-lg transition-all duration-300 bg-slate-300 cursor-not-allowed">
+                {% endif %}
+                    <span id="btn-text" class="flex items-center justify-center gap-2">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        🌿 Check Now
+                    </span>
+                    <span id="btn-loading" class="hidden flex items-center justify-center gap-2">
+                        <svg class="animate-spin h-6 w-6" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Analyzing with AI — Please wait...
+                    </span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const imageInput = document.getElementById('image-input');
+    const dropZone = document.getElementById('drop-zone');
+    const uploadPrompt = document.getElementById('upload-prompt');
+    const imagePreview = document.getElementById('image-preview');
+    const previewImg = document.getElementById('preview-img');
+    const fileName = document.getElementById('file-name');
+    const submitBtn = document.getElementById('submit-btn');
+    const uploadForm = document.getElementById('upload-form');
+    let cameraStream = null;
+
+    // Enable the check button with proper styling
+    function enableCheckButton() {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('bg-slate-300', 'cursor-not-allowed');
+        submitBtn.classList.add('bg-emerald-600', 'cursor-pointer', 'shadow-lg', 'shadow-emerald-200');
+        submitBtn.style.transform = 'scale(1)';
+        // Add hover effect via JS
+        submitBtn.onmouseenter = () => {
+            submitBtn.classList.remove('bg-emerald-600');
+            submitBtn.classList.add('bg-emerald-700');
+            submitBtn.style.transform = 'scale(1.02)';
+        };
+        submitBtn.onmouseleave = () => {
+            submitBtn.classList.remove('bg-emerald-700');
+            submitBtn.classList.add('bg-emerald-600');
+            submitBtn.style.transform = 'scale(1)';
+        };
+    }
+
+    // File input change
+    imageInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            showPreview(this.files[0]);
+        }
+    });
+
+    // Drag and drop
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-emerald-400', 'bg-emerald-50');
+    });
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('border-emerald-400', 'bg-emerald-50');
+    });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-emerald-400', 'bg-emerald-50');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            imageInput.files = e.dataTransfer.files;
+            showPreview(e.dataTransfer.files[0]);
+        }
+    });
+
+    function showPreview(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            previewImg.src = e.target.result;
+            uploadPrompt.classList.add('hidden');
+            imagePreview.classList.remove('hidden');
+            fileName.textContent = file.name;
+            enableCheckButton();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Camera
+    function openCamera() {
+        const cameraSection = document.getElementById('camera-section');
+        const video = document.getElementById('camera-stream');
+        cameraSection.classList.remove('hidden');
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(stream => {
+                cameraStream = stream;
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                alert('Camera access denied or not available. Please upload a photo instead.');
+                cameraSection.classList.add('hidden');
+            });
+    }
+
+    function capturePhoto() {
+        const video = document.getElementById('camera-stream');
+        const canvas = document.getElementById('camera-canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+
+        canvas.toBlob(blob => {
+            const file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            imageInput.files = dataTransfer.files;
+            showPreview(file);
+            closeCamera();
+        }, 'image/jpeg', 0.9);
+    }
+
+    function closeCamera() {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+        }
+        document.getElementById('camera-section').classList.add('hidden');
+    }
+
+    // Form submit — show loading state
+    uploadForm.addEventListener('submit', function() {
+        document.getElementById('btn-text').classList.add('hidden');
+        document.getElementById('btn-loading').classList.remove('hidden');
+        submitBtn.disabled = true;
+        submitBtn.classList.remove('bg-emerald-600', 'bg-emerald-700', 'shadow-lg', 'shadow-emerald-200');
+        submitBtn.classList.add('bg-amber-500', 'cursor-wait');
+        submitBtn.onmouseenter = null;
+        submitBtn.onmouseleave = null;
+    });
+</script>
+{% endblock %}

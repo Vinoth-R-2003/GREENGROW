@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <div class="mb-6 flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-gray-800">Harvests for {{ user_plant.plant.name }}</h1>
+        <a href="{% url 'user_plant_detail' user_plant.id %}" class="text-green-600 hover:text-green-800">
+            &larr; Back to Plant
+        </a>
+    </div>
+
+    <!-- Harvest Form -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Add New Harvest</h2>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Date</label>
+                    {% render_field form.date class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                    focus:border-green-500 focus:ring-green-500" %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Quantity</label>
+                    {% render_field form.quantity class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                    focus:border-green-500 focus:ring-green-500" %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Unit</label>
+                    {% render_field form.unit class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                    focus:border-green-500 focus:ring-green-500" %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Rating (1-5)</label>
+                    {% render_field form.rating class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                    focus:border-green-500 focus:ring-green-500" %}
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Notes</label>
+                {% render_field form.notes class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                focus:border-green-500 focus:ring-green-500" rows="3" %}
+            </div>
+            <button type="submit"
+                class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                Add Harvest
+            </button>
+        </form>
+    </div>
+
+    <!-- Harvest History -->
+    <div class="space-y-4">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">History</h2>
+        {% if harvests %}
+        {% for harvest in harvests %}
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="font-semibold text-lg">{{ harvest.date }}</p>
+                    <p class="text-gray-600">Quantity: <span class="font-medium text-gray-900">{{ harvest.quantity }} {{
+                            harvest.unit }}</span></p>
+                    <p class="text-gray-600">Quality: <span class="text-yellow-500">★ {{ harvest.rating }}</span></p>
+                </div>
+                {% if harvest.notes %}
+                <div class="text-gray-500 text-sm max-w-xs text-right italic">
+                    "{{ harvest.notes }}"
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="text-gray-500 text-center py-4">No harvests recorded yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
