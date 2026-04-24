@@ -125,17 +125,13 @@ def analyze_plant_image(image_path, check_type):
     max_retries = 3
     last_error = None
 
+    from google.genai import types
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
                 model='gemini-2.5-flash',
                 contents=[
-                    {
-                        'inline_data': {
-                            'mime_type': mime_type,
-                            'data': base64.b64encode(image_data).decode('utf-8'),
-                        }
-                    },
+                    types.Part.from_bytes(data=image_data, mime_type=mime_type),
                     prompt,
                 ],
             )
