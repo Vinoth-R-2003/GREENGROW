@@ -181,24 +181,24 @@ ML_MODEL_PATH = BASE_DIR / 'checks' / 'ml_models' / 'trained_plant_disease_model
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Cloudinary configuration for persistent media storage on Render
-CLOUDINARY_CLOUD_NAME_VAL = config('CLOUDINARY_CLOUD_NAME', default='') or os.environ.get('CLOUDINARY_CLOUD_NAME', '')
-CLOUDINARY_API_KEY_VAL = config('CLOUDINARY_API_KEY', default='') or os.environ.get('CLOUDINARY_API_KEY', '')
-CLOUDINARY_API_SECRET_VAL = config('CLOUDINARY_API_SECRET', default='') or os.environ.get('CLOUDINARY_API_SECRET', '')
+# Cloudinary configuration — reads DIRECTLY from environment (bypasses .env file)
+_CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
+_CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '')
+_CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '')
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': CLOUDINARY_CLOUD_NAME_VAL,
-    'API_KEY': CLOUDINARY_API_KEY_VAL,
-    'API_SECRET': CLOUDINARY_API_SECRET_VAL,
+    'CLOUD_NAME': _CLOUDINARY_CLOUD_NAME,
+    'API_KEY': _CLOUDINARY_API_KEY,
+    'API_SECRET': _CLOUDINARY_API_SECRET,
     'SECURE': True,
 }
 
-# Always use Cloudinary if cloud name is available
-if CLOUDINARY_CLOUD_NAME_VAL:
+# Force Cloudinary for all media uploads if configured
+if _CLOUDINARY_CLOUD_NAME:
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    print(f"[OK] Cloudinary configured: {CLOUDINARY_CLOUD_NAME_VAL}")
+    print(f"[CLOUDINARY] Active — Cloud: {_CLOUDINARY_CLOUD_NAME}")
 else:
-    print("[WARNING] Cloudinary not configured - using local media storage")
+    print("[CLOUDINARY] NOT configured — images will be lost on server restart!")
 
 # Channels configuration
 ASGI_APPLICATION = 'app_core.asgi.application'
