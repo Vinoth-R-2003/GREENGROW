@@ -1,189 +1,306 @@
-from google import genai
-from django.conf import settings
+import base64
+import requests
 import json
 import re
 import time
-import base64
+from django.conf import settings
 
 
-PROMPTS = {
-    'health': """You are an expert plant pathologist and botanist. Analyze this plant image for overall health status.
+# ---------------------------------------------------------------------------
+# Plant.id API — Image Analysis (health, disease, encyclopedia)
+# ---------------------------------------------------------------------------
 
-Provide your analysis in the following JSON format ONLY (no markdown, no explanation):
-{{
-    "title": "Brief health status title (e.g., 'Healthy Tomato Plant' or 'Nutrient-Deficient Rose')",
-    "summary": "2-3 sentence summary of the plant's overall health condition",
-    "severity": "One of: healthy, low, medium, high, critical",
-    "confidence": 85,
-    "details": {{
-        "plant_identified": "Name of the plant if identifiable",
-        "overall_health": "Good/Fair/Poor/Critical",
-        "leaf_condition": "Description of leaf health",
-        "stem_condition": "Description of stem health",
-        "color_analysis": "Analysis of colors observed",
-        "growth_stage": "Estimated growth stage",
-        "stress_indicators": ["list", "of", "stress", "signs"]
-    }},
-    "recommendations": "3-5 actionable recommendations separated by newlines"
-}}""",
+PLANT_ID_ENDPOINT = "https://api.plant.id/v3/identification"
 
-    'disease': """You are an expert plant pathologist specializing in plant disease detection. Analyze this plant image to identify any diseases, infections, or pest damage.
 
-Provide your analysis in the following JSON format ONLY (no markdown, no explanation):
-{{
-    "title": "Disease identification title (e.g., 'Powdery Mildew Detected' or 'No Disease Found')",
-    "summary": "2-3 sentence summary of the disease analysis findings",
-    "severity": "One of: healthy, low, medium, high, critical",
-    "confidence": 85,
-    "details": {{
-        "plant_identified": "Name of the plant if identifiable",
-        "disease_detected": true,
-        "disease_name": "Name of disease if detected, or 'None'",
-        "disease_type": "Fungal/Bacterial/Viral/Pest/Nutrient/None",
-        "affected_parts": ["list", "of", "affected", "parts"],
-        "symptoms_observed": ["list", "of", "symptoms"],
-        "spread_risk": "Low/Medium/High",
-        "stage": "Early/Moderate/Advanced/Severe"
-    }},
-    "recommendations": "3-5 treatment and prevention recommendations separated by newlines"
-}}""",
+def _encode_image(image_path):
+    """Encode image file to Base64 string for Plant.id API."""
+    with open(image_path, "rb") as f:
+        return base64.b64encode(f.read()).decode("ascii")
 
-    'yield': """You are an expert agronomist specializing in crop yield assessment. Analyze this plant/crop image to predict the potential yield.
 
-Provide your analysis in the following JSON format ONLY (no markdown, no explanation):
-{{
-    "title": "Yield prediction title (e.g., 'Good Yield Expected for Tomato Crop')",
-    "summary": "2-3 sentence summary of the yield prediction",
-    "severity": "One of: healthy, low, medium, high (healthy=excellent yield, low=good, medium=average, high=below average)",
-    "confidence": 75,
-    "details": {{
-        "plant_identified": "Name of the crop if identifiable",
-        "growth_stage": "Seedling/Vegetative/Flowering/Fruiting/Mature/Harvest-ready",
-        "yield_potential": "Excellent/Good/Average/Below Average/Poor",
-        "estimated_harvest_time": "Estimated days or weeks to harvest",
-        "fruit_count_visible": "Number of fruits/vegetables visible if applicable",
-        "plant_vigor": "Strong/Moderate/Weak",
-        "environmental_factors": ["list", "of", "observed", "environmental", "factors"],
-        "limiting_factors": ["list", "of", "factors", "limiting", "yield"]
-    }},
-    "recommendations": "3-5 recommendations to maximize yield separated by newlines"
-}}""",
-
-    'encyclopedia': """You are an expert botanist and horticulturist. Analyze this image to identify the plant and provide encyclopedic information.
-
-Provide your analysis in the following JSON format ONLY (no markdown, no explanation):
-{{
-    "title": "Plant identification title (e.g., 'Tomato Plant Identified' or 'Unknown Plant')",
-    "summary": "2-3 sentence overview of the plant, its origin, and common uses.",
-    "severity": "healthy",
-    "confidence": 85,
-    "details": {{
-        "plant_identified": "Scientific and common name of the plant",
-        "family": "Botanical family",
-        "origin": "Native region or origin",
-        "growth_habit": "e.g., Shrub, Tree, Vine, Herbaceous",
-        "light_requirements": "e.g., Full sun, Partial shade",
-        "water_requirements": "e.g., Moderate, High, Drought-tolerant",
-        "ideal_climate": ["list", "of", "ideal", "climates", "or", "zones"],
-        "common_uses": ["list", "of", "uses"]
-    }},
-    "recommendations": "3-5 general care tips for this plant separated by newlines"
-}}"""
-}
+def _severity_from_probability(probability):
+    """Map a 0-1 confidence probability to our internal severity scale."""
+    if probability >= 0.8:
+        return "critical"
+    elif probability >= 0.6:
+        return "high"
+    elif probability >= 0.4:
+        return "medium"
+    elif probability >= 0.2:
+        return "low"
+    return "healthy"
 
 
 def analyze_plant_image(image_path, check_type):
     """
-    Use Google Gemini AI with vision to analyze a plant image.
-    Returns a dict with analysis results.
+    Use the Plant.id v3 API to analyze a plant image.
+    Supports check_type: 'health', 'disease', 'encyclopedia'
+    Returns a dict compatible with our app's result template.
     """
-    api_key = getattr(settings, 'GEMINI_API_KEY', '')
+    api_key = getattr(settings, "PLANT_ID_API_KEY", "")
     if not api_key:
-        raise ValueError("GEMINI_API_KEY is not configured in settings.")
+        raise ValueError("PLANT_ID_API_KEY is not configured in settings.")
 
-    if check_type not in PROMPTS:
-        raise ValueError(f"Invalid check type: {check_type}")
+    encoded_image = _encode_image(image_path)
 
-    client = genai.Client(api_key=api_key)
-    prompt = PROMPTS[check_type]
+    # Build request payload — always request identification + health
+    payload = {
+        "images": [encoded_image],
+        "health": "all",
+        "classification_level": "species",
+        "similar_images": False,
+        "details": [
+            "common_names",
+            "description",
+            "watering",
+            "sunlight",
+            "best_watering",
+            "best_light_condition",
+            "best_soil_type",
+            "common_uses",
+            "toxicity",
+            "taxonomy",
+            "treatment",
+        ],
+    }
 
-    import PIL.Image
-    image = PIL.Image.open(image_path)
-    
+    headers = {
+        "Api-Key": api_key,
+        "Content-Type": "application/json",
+    }
+
     max_retries = 3
     last_error = None
 
     for attempt in range(max_retries):
         try:
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=[
-                    image,
-                    prompt,
-                ],
+            response = requests.post(
+                PLANT_ID_ENDPOINT,
+                headers=headers,
+                json=payload,
+                timeout=30,
             )
-            text = response.text.strip()
 
-            # Remove markdown code fences if present
-            text = re.sub(r'^```(?:json)?\s*', '', text)
-            text = re.sub(r'\s*```$', '', text)
-            text = text.strip()
-
-            result = json.loads(text)
-
-            # Validate required fields
-            valid_severities = ['healthy', 'low', 'medium', 'high', 'critical']
-            severity = result.get('severity', 'medium')
-            if severity not in valid_severities:
-                severity = 'medium'
-
-            confidence = result.get('confidence', 70)
-            try:
-                confidence = float(confidence)
-                confidence = max(0, min(100, confidence))
-            except (ValueError, TypeError):
-                confidence = 70.0
-
-            return {
-                'title': str(result.get('title', 'Analysis Complete')),
-                'summary': str(result.get('summary', '')),
-                'severity': severity,
-                'confidence': confidence,
-                'details': result.get('details', {}),
-                'recommendations': str(result.get('recommendations', '')),
-            }
-
-        except json.JSONDecodeError as e:
-            raise ValueError(f"AI returned an invalid response. Please try again. Error: {e}")
-        except Exception as e:
-            last_error = e
-            error_str = str(e)
-            if "429" in error_str or "quota" in error_str.lower() or "resource" in error_str.lower():
+            if response.status_code == 429:
                 if attempt < max_retries - 1:
-                    wait_time = (2 ** attempt) * 2
-                    time.sleep(wait_time)
+                    time.sleep((2 ** attempt) * 2)
                     continue
                 raise ValueError(
-                    "🔄 API quota exceeded. Please try again in a few moments. "
-                    "The AI check feature has reached its usage limit and will be available again soon."
+                    "🔄 Plant.id API rate limit reached. Please try again in a few minutes."
                 )
-            raise ValueError(f"AI analysis failed: {e}")
 
-    raise ValueError(f"AI analysis failed after {max_retries} retries: {last_error}")
+            if response.status_code == 401:
+                raise ValueError(
+                    "❌ Invalid Plant.id API key. Please check the PLANT_ID_API_KEY setting."
+                )
+
+            if not response.ok:
+                raise ValueError(
+                    f"Plant.id API returned an error: {response.status_code} — {response.text[:200]}"
+                )
+
+            data = response.json()
+            return _parse_plant_id_response(data, check_type)
+
+        except requests.exceptions.Timeout:
+            last_error = "Request timed out."
+            if attempt < max_retries - 1:
+                time.sleep(2)
+                continue
+        except ValueError:
+            raise
+        except Exception as e:
+            last_error = str(e)
+            if attempt < max_retries - 1:
+                time.sleep(2)
+                continue
+
+    raise ValueError(f"Plant.id analysis failed after {max_retries} attempts: {last_error}")
+
+
+def _parse_plant_id_response(data, check_type):
+    """
+    Convert Plant.id v3 API response into the standard dict
+    our Django templates expect.
+    """
+    result = data.get("result", {})
+
+    # ── Species identification ──────────────────────────────────────────────
+    classification = result.get("classification", {})
+    suggestions = classification.get("suggestions", [])
+    top_species = suggestions[0] if suggestions else {}
+    plant_name = top_species.get("name", "Unknown Plant")
+    plant_probability = top_species.get("probability", 0.0)
+    species_details = top_species.get("details", {})
+
+    common_names = species_details.get("common_names") or []
+    common_name = common_names[0] if common_names else plant_name
+    description = species_details.get("description", {})
+    description_text = (
+        description.get("value", "") if isinstance(description, dict) else str(description)
+    )
+
+    # ── Health / Disease ────────────────────────────────────────────────────
+    health_data = result.get("health_assessment", result.get("disease", {}))
+    is_healthy = health_data.get("is_healthy", {})
+    is_healthy_prob = (
+        is_healthy.get("probability", 1.0) if isinstance(is_healthy, dict) else float(is_healthy)
+    )
+    diseases = health_data.get("diseases", health_data.get("suggestions", []))
+
+    # Pick the top disease if any
+    top_disease = None
+    top_disease_prob = 0.0
+    for d in diseases:
+        prob = d.get("probability", 0.0)
+        if prob > top_disease_prob:
+            top_disease = d
+            top_disease_prob = prob
+
+    disease_name = top_disease.get("name", "None detected") if top_disease else "None detected"
+    disease_details_raw = top_disease.get("details", {}) if top_disease else {}
+    treatment = disease_details_raw.get("treatment", {}) if isinstance(disease_details_raw, dict) else {}
+
+    # ── Build the standard response based on check_type ────────────────────
+    if check_type == "health":
+        if is_healthy_prob >= 0.7:
+            title = f"Healthy {common_name}"
+            severity = "healthy"
+            summary = (
+                f"Your {common_name} ({plant_name}) appears to be in good health "
+                f"with a confidence of {plant_probability * 100:.0f}%. "
+                "No significant health issues were detected."
+            )
+        else:
+            title = f"Health Issues Detected — {common_name}"
+            severity = _severity_from_probability(1 - is_healthy_prob)
+            summary = (
+                f"Your plant ({common_name}) shows signs of health issues. "
+                f"The most likely problem is {disease_name}. "
+                "See recommendations below for treatment advice."
+            )
+
+        details = {
+            "plant_identified": f"{common_name} ({plant_name})",
+            "overall_health": "Good" if is_healthy_prob >= 0.7 else "Poor",
+            "disease_detected": disease_name if disease_name != "None detected" else "None",
+            "identification_confidence": f"{plant_probability * 100:.0f}%",
+        }
+        if description_text:
+            details["about"] = description_text[:300]
+
+        recs = []
+        if treatment:
+            if isinstance(treatment, dict):
+                for method, advice in treatment.items():
+                    if isinstance(advice, str):
+                        recs.append(f"{method.title()}: {advice[:150]}")
+            elif isinstance(treatment, str):
+                recs.append(treatment)
+        if not recs:
+            recs = ["Monitor your plant regularly.", "Ensure proper watering and sunlight."]
+        recommendations = "\n".join(recs[:5])
+
+    elif check_type == "disease":
+        if not diseases or top_disease_prob < 0.2:
+            title = f"No Disease Found — {common_name}"
+            severity = "healthy"
+            summary = (
+                f"No significant diseases or infections were detected on your {common_name}. "
+                "The plant appears to be in healthy condition."
+            )
+        else:
+            title = f"{disease_name} Detected"
+            severity = _severity_from_probability(top_disease_prob)
+            summary = (
+                f"A potential case of **{disease_name}** was detected on your {common_name} "
+                f"with {top_disease_prob * 100:.0f}% confidence. "
+                "See the treatment recommendations below."
+            )
+
+        details = {
+            "plant_identified": f"{common_name} ({plant_name})",
+            "disease_detected": disease_name,
+            "confidence": f"{top_disease_prob * 100:.0f}%",
+        }
+
+        recs = []
+        if treatment:
+            if isinstance(treatment, dict):
+                for method, advice in treatment.items():
+                    if isinstance(advice, str):
+                        recs.append(f"{method.title()}: {advice[:150]}")
+            elif isinstance(treatment, str):
+                recs.append(treatment)
+        if not recs:
+            recs = ["Consult a local agronomist for advice.", "Remove affected parts to limit spread."]
+        recommendations = "\n".join(recs[:5])
+
+    else:  # encyclopedia
+        title = f"{common_name} Identified"
+        severity = "healthy"
+        summary = (
+            description_text[:300]
+            if description_text
+            else f"This is a {common_name} ({plant_name})."
+        )
+
+        taxonomy = species_details.get("taxonomy", {}) or {}
+        details = {
+            "plant_identified": f"{common_name} ({plant_name})",
+            "family": taxonomy.get("family", "Unknown"),
+            "identification_confidence": f"{plant_probability * 100:.0f}%",
+        }
+        sunlight = species_details.get("best_light_condition") or species_details.get("sunlight")
+        watering = species_details.get("best_watering") or species_details.get("watering")
+        soil = species_details.get("best_soil_type")
+        common_uses = species_details.get("common_uses")
+
+        if sunlight:
+            details["light_requirements"] = sunlight if isinstance(sunlight, str) else str(sunlight)
+        if watering:
+            details["water_requirements"] = watering if isinstance(watering, str) else str(watering)
+        if soil:
+            details["soil_type"] = soil if isinstance(soil, str) else str(soil)
+        if common_uses:
+            details["common_uses"] = common_uses if isinstance(common_uses, list) else [str(common_uses)]
+
+        recommendations = "Water regularly. Ensure adequate sunlight. Check for pests periodically."
+
+    return {
+        "title": title,
+        "summary": summary,
+        "severity": severity,
+        "confidence": round(plant_probability * 100, 1),
+        "details": details,
+        "recommendations": recommendations,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Google Gemini — Text-based Crop Recommendation (unchanged)
+# ---------------------------------------------------------------------------
 
 def analyze_crop_recommendation(temperature, soil_type, rainfall, proposed_crop=None):
     """
-    Use Google Gemini AI to analyze environmental parameters and recommend the best crop to grow.
+    Use Google Gemini AI to analyze environmental parameters and recommend the best crop.
     Returns a dict with analysis results.
     """
-    api_key = getattr(settings, 'GEMINI_API_KEY', '')
+    from google import genai
+
+    api_key = getattr(settings, "GEMINI_API_KEY", "")
     if not api_key:
         raise ValueError("GEMINI_API_KEY is not configured in settings.")
 
     client = genai.Client(api_key=api_key)
-    
-    proposed_crop_text = f"The user is thinking of planting: {proposed_crop}." if proposed_crop else "The user has not specified a default crop."
-    
+
+    proposed_crop_text = (
+        f"The user is thinking of planting: {proposed_crop}."
+        if proposed_crop
+        else "The user has not specified a default crop."
+    )
+
     prompt = f"""You are an expert agronomist and crop consultant. A farmer wants your advice.
 Environmental conditions:
 - Temperature: {temperature} °C
@@ -191,7 +308,7 @@ Environmental conditions:
 - Annual Rainfall: {rainfall} mm
 {proposed_crop_text}
 
-Analyze these conditions to recommend the BEST crop(s) for these exact conditions and predict potential yield success. If they proposed a crop, evaluate its viability first, then provide alternatives if there's a better option. 
+Analyze these conditions to recommend the BEST crop(s) for these exact conditions and predict potential yield success. If they proposed a crop, evaluate its viability first, then provide alternatives if there's a better option.
 
 Provide your analysis in the following JSON format ONLY (no markdown, no explanation):
 {{
@@ -216,23 +333,22 @@ Provide your analysis in the following JSON format ONLY (no markdown, no explana
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model="gemini-2.5-flash",
                 contents=[prompt],
             )
             text = response.text.strip()
-
-            text = re.sub(r'^```(?:json)?\s*', '', text)
-            text = re.sub(r'\s*```$', '', text)
+            text = re.sub(r"^```(?:json)?\s*", "", text)
+            text = re.sub(r"\s*```$", "", text)
             text = text.strip()
 
             result = json.loads(text)
 
-            valid_severities = ['healthy', 'low', 'medium', 'high', 'critical']
-            severity = result.get('severity', 'medium')
+            valid_severities = ["healthy", "low", "medium", "high", "critical"]
+            severity = result.get("severity", "medium")
             if severity not in valid_severities:
-                severity = 'medium'
+                severity = "medium"
 
-            confidence = result.get('confidence', 70)
+            confidence = result.get("confidence", 70)
             try:
                 confidence = float(confidence)
                 confidence = max(0, min(100, confidence))
@@ -240,12 +356,12 @@ Provide your analysis in the following JSON format ONLY (no markdown, no explana
                 confidence = 70.0
 
             return {
-                'title': str(result.get('title', 'Recommendation Complete')),
-                'summary': str(result.get('summary', '')),
-                'severity': severity,
-                'confidence': confidence,
-                'details': result.get('details', {}),
-                'recommendations': str(result.get('recommendations', '')),
+                "title": str(result.get("title", "Recommendation Complete")),
+                "summary": str(result.get("summary", "")),
+                "severity": severity,
+                "confidence": confidence,
+                "details": result.get("details", {}),
+                "recommendations": str(result.get("recommendations", "")),
             }
 
         except json.JSONDecodeError as e:
@@ -262,4 +378,3 @@ Provide your analysis in the following JSON format ONLY (no markdown, no explana
             raise ValueError(f"AI recommendation failed: {e}")
 
     raise ValueError(f"AI recommendation failed after {max_retries} retries: {last_error}")
-

@@ -166,8 +166,12 @@ LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = '/'
 
-# Google Gemini AI API Key
+# Google Gemini AI API Key (used only for Crop Recommendation)
 GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
+
+# Plant.id API Key (used for plant health, disease, and encyclopedia checks)
+PLANT_ID_API_KEY = config('PLANT_ID_API_KEY', default='')
+
 
 # ML Model Configuration
 # Set USE_ML_MODEL=True to use local ML model, False to use Gemini AI

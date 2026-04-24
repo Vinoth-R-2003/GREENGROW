@@ -41,3 +41,6 @@ dnspython==2.6.1
 # Cloud Media Storage (for Render deployment)
 cloudinary==1.41.0
 django-cloudinary-storage==0.3.0
+
+# Plant Image Analysis
+requests==2.32.3
