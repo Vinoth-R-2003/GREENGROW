@@ -218,3 +218,5 @@ if MONGODB_URI:
         print(f"[WARNING] MongoDB connection failed: {e}. Using SQLite only.")
 else:
     print("[WARNING] MongoDB URI not found in .env file. Using SQLite only.")
+
+NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"
