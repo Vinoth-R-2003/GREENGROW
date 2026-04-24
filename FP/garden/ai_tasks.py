@@ -5,6 +5,43 @@ import json
 import re
 import time
 
+def get_fallback_tasks(plant_name):
+    """Returns a generic, reliable care schedule if the AI API fails."""
+    from datetime import date, timedelta
+    today = date.today()
+    return [
+        {
+            'task_type': 'Watering',
+            'notes': f'Check soil moisture for {plant_name}. Water deeply if the top inch is dry.',
+            'due_date': today,
+            'recurrence_days': 3,
+        },
+        {
+            'task_type': 'Fertilizing',
+            'notes': f'Apply a balanced liquid fertilizer to {plant_name}.',
+            'due_date': today + timedelta(days=14),
+            'recurrence_days': 30,
+        },
+        {
+            'task_type': 'Pruning',
+            'notes': f'Inspect {plant_name} and remove any dead or yellowing leaves.',
+            'due_date': today + timedelta(days=7),
+            'recurrence_days': 14,
+        },
+        {
+            'task_type': 'Pest Control',
+            'notes': 'Check under leaves and along stems for early signs of pests.',
+            'due_date': today + timedelta(days=5),
+            'recurrence_days': 7,
+        },
+        {
+            'task_type': 'Other',
+            'notes': 'Check overall plant health and ensure it receives adequate sunlight.',
+            'due_date': today + timedelta(days=2),
+            'recurrence_days': 14,
+        }
+    ]
+
 
 def generate_ai_tasks(plant_name, plant_description, how_to_grow):
     """
@@ -93,10 +130,12 @@ Respond ONLY with a valid JSON array. No markdown, no explanation. Example forma
                     wait_time = (2 ** attempt) * 2  # 2s, 4s, 8s
                     time.sleep(wait_time)
                     continue
-                raise ValueError(
-                    "🔄 API quota exceeded. Please try again in a few moments. "
-                    "The AI task feature has reached its usage limit and will be available again soon."
-                )
-            raise ValueError(f"AI task generation failed: {e}")
+                # API is completely exhausted -> Trigger Fallback
+                return get_fallback_tasks(plant_name)
+            
+            # For any other fatal error, also trigger the fallback instead of crashing
+            if attempt == max_retries - 1:
+                return get_fallback_tasks(plant_name)
 
-    raise ValueError(f"AI task generation failed after {max_retries} retries: {last_error}")
+    # Absolute ultimate fallback
+    return get_fallback_tasks(plant_name)
