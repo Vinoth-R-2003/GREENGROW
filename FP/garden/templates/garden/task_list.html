@@ -78,14 +78,11 @@
             class="bg-white rounded-lg shadow p-4 flex justify-between items-center {% if task.is_completed %}opacity-50{% endif %}">
             <div>
                 <div class="flex items-center space-x-3">
-                    <span
-                        class="font-semibold text-lg {% if task.is_completed %}line-through text-gray-500{% endif %}">{{
-                        task.task_type }}</span>
+                    <span class="font-semibold text-lg {% if task.is_completed %}line-through text-gray-500{% endif %}">{{ task.task_type }}</span>
                     {% if task.is_completed %}
                     <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Completed</span>
                     {% else %}
-                    <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Due: {{ task.due_date
-                        }}</span>
+                    <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Due: {{ task.due_date }}</span>
                     {% endif %}
                 </div>
                 {% if task.notes %}
