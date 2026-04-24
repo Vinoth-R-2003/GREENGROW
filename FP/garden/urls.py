@@ -19,4 +19,8 @@ urlpatterns = [
     path('tasks/<int:task_id>/complete/', views.complete_task, name='complete_task'),
     path('user-plant/<int:user_plant_id>/health/', views.health_log_list, name='health_log_list'),
     path('expenses/', views.expense_list, name='expense_list'),
+    
+    # Check Integrations
+    path('add-from-check/<int:check_id>/', views.add_to_garden_from_check, name='add_from_check'),
+    path('log-disease/<int:check_id>/', views.log_disease_from_check, name='log_disease'),
 ]

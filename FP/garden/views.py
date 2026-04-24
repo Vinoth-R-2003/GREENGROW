@@ -204,3 +204,76 @@ def user_plant_detail(request, user_plant_id):
     else:
         form = PlantUpdateForm(instance=user_plant)
     return render(request, 'garden/user_plant_detail.html', {'user_plant': user_plant, 'form': form})
+
+# --- Integration Views (From CHECKS) ---
+
+@login_required
+def add_to_garden_from_check(request, check_id):
+    from checks.models import PlantCheck
+    check = get_object_or_404(PlantCheck, pk=check_id, user=request.user)
+    
+    if check.check_type != 'encyclopedia':
+        from django.contrib import messages
+        messages.error(request, "Only encyclopedia entries can be added to your garden this way.")
+        return redirect('checks_dashboard')
+
+    # Try to extract the plant name. The Encyclopedia sets it in details['plant_identified'] or result_title
+    plant_name = check.result_title.replace(" Identified", "")
+    
+    # See if this plant already exists in the global DB
+    plant, created = Plant.objects.get_or_create(
+        name=plant_name,
+        defaults={
+            'description': check.result_summary,
+            'uses': ', '.join(check.result_details.get('common_uses', [])),
+            'how_to_grow': check.recommendations,
+            'how_to_use': ', '.join(check.result_details.get('common_uses', [])),
+        }
+    )
+
+    # Attach the image if available and the plant doesn't have one
+    if check.image and not plant.image:
+        plant.image = check.image
+        plant.save()
+
+    # Add to the user's garden
+    user_plant, up_created = UserPlant.objects.get_or_create(user=request.user, plant=plant)
+
+    from django.contrib import messages
+    if up_created:
+        messages.success(request, f'🌱 {plant_name} was added to your Garden! Generating your care schedule...')
+        # Automatically generate tasks
+        return redirect('generate_ai_tasks', user_plant_id=user_plant.id)
+    else:
+        messages.info(request, f'{plant_name} is already in your Garden.')
+        return redirect('my_garden')
+
+@login_required
+def log_disease_from_check(request, check_id):
+    from checks.models import PlantCheck
+    from .models import HealthLog
+    check = get_object_or_404(PlantCheck, pk=check_id, user=request.user)
+    
+    if request.method == 'POST':
+        user_plant_id = request.POST.get('user_plant_id')
+        if user_plant_id:
+            user_plant = get_object_or_404(UserPlant, pk=user_plant_id, user=request.user)
+            
+            HealthLog.objects.create(
+                user_plant=user_plant,
+                issue_type='Disease' if check.check_type == 'disease' else 'Other',
+                severity=check.severity.capitalize(),
+                status='Identified',
+                image=check.image,
+                notes=f"Detected by AI: {check.result_title}\n\nSummary: {check.result_summary}\n\nRecommendations:\n{check.recommendations}"
+            )
+            
+            from django.contrib import messages
+            messages.success(request, f'💊 Health issue logged to {user_plant.plant.name}!')
+            return redirect('health_log_list', user_plant_id=user_plant.id)
+
+    user_plants = UserPlant.objects.filter(user=request.user).select_related('plant')
+    return render(request, 'garden/log_disease_form.html', {
+        'check': check,
+        'user_plants': user_plants
+    })

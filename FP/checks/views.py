@@ -53,13 +53,13 @@ def upload_check(request, check_type):
     if request.method == 'POST':
         if check_type == 'yield':
             form = CropRecommendationForm(request.POST)
-        elif check_type == 'encyclopedia' and 'plant_name' in request.POST:
+        elif check_type == 'encyclopedia' and request.POST.get('plant_name', '').strip():
             form = EncyclopediaSearchForm(request.POST)
         else:
             form = PlantCheckForm(request.POST, request.FILES)
         
         if form.is_valid():
-            if check_type == 'encyclopedia' and 'plant_name' in request.POST:
+            if check_type == 'encyclopedia' and request.POST.get('plant_name', '').strip():
                 # Handle Text Search for Encyclopedia
                 plant_name = form.cleaned_data['plant_name']
                 

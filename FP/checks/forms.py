@@ -28,7 +28,7 @@ class CropRecommendationForm(forms.ModelForm):
 class EncyclopediaSearchForm(forms.Form):
     plant_name = forms.CharField(
         max_length=100,
-        required=True,
+        required=False,
         widget=forms.TextInput(attrs={
             'class': 'w-full px-4 py-4 pl-12 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-lg',
             'placeholder': 'Search any plant by name (e.g., Aloe Vera)'
