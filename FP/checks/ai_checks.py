@@ -49,19 +49,6 @@ def analyze_plant_image(image_path, check_type):
         "images": [encoded_image],
         "health": "all",
         "classification_level": "species",
-        "details": [
-            "common_names",
-            "description",
-            "watering",
-            "sunlight",
-            "best_watering",
-            "best_light_condition",
-            "best_soil_type",
-            "common_uses",
-            "toxicity",
-            "taxonomy",
-            "treatment",
-        ],
     }
 
     headers = {
