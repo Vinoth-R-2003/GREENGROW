@@ -14,6 +14,10 @@ python manage.py collectstatic --no-input
 echo "Running database migrations..."
 python manage.py migrate
 
+echo "Seeding Marketplace and Garden data..."
+python seed_items.py
+python seed_plants.py
+
 echo "Checking Cloudinary configuration..."
 python -c "import os; cn = os.environ.get('CLOUDINARY_CLOUD_NAME',''); print('[OK] CLOUDINARY_CLOUD_NAME is SET (' + cn[:4] + '...)') if cn else print('[WARNING] CLOUDINARY_CLOUD_NAME is NOT SET')"
 
