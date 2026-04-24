@@ -107,31 +107,18 @@ def analyze_plant_image(image_path, check_type):
     client = genai.Client(api_key=api_key)
     prompt = PROMPTS[check_type]
 
-    # Read and encode the image
-    with open(image_path, 'rb') as f:
-        image_data = f.read()
-
-    # Determine MIME type
-    ext = str(image_path).lower().rsplit('.', 1)[-1]
-    mime_map = {
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'png': 'image/png',
-        'webp': 'image/webp',
-        'gif': 'image/gif',
-    }
-    mime_type = mime_map.get(ext, 'image/jpeg')
-
+    import PIL.Image
+    image = PIL.Image.open(image_path)
+    
     max_retries = 3
     last_error = None
 
-    from google.genai import types
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
                 model='gemini-2.5-flash',
                 contents=[
-                    types.Part.from_bytes(data=image_data, mime_type=mime_type),
+                    image,
                     prompt,
                 ],
             )
