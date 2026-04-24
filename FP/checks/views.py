@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import PlantCheck
-from .forms import PlantCheckForm, CropRecommendationForm
+from .forms import PlantCheckForm, CropRecommendationForm, EncyclopediaSearchForm
 
 
 CHECK_TYPE_META = {
@@ -53,71 +53,104 @@ def upload_check(request, check_type):
     if request.method == 'POST':
         if check_type == 'yield':
             form = CropRecommendationForm(request.POST)
+        elif check_type == 'encyclopedia' and 'plant_name' in request.POST:
+            form = EncyclopediaSearchForm(request.POST)
         else:
             form = PlantCheckForm(request.POST, request.FILES)
         
         if form.is_valid():
-            check = form.save(commit=False)
-            check.user = request.user
-            check.check_type = check_type
-            check.save()
+            if check_type == 'encyclopedia' and 'plant_name' in request.POST:
+                # Handle Text Search for Encyclopedia
+                plant_name = form.cleaned_data['plant_name']
+                
+                check = PlantCheck(user=request.user, check_type=check_type)
+                # Don't save it yet until we get results
+                
+                try:
+                    from .ai_checks import search_plant_encyclopedia
+                    result = search_plant_encyclopedia(plant_name)
+                    
+                    check.result_title = result['title']
+                    check.result_summary = result['summary']
+                    check.severity = result['severity']
+                    check.confidence_score = result['confidence']
+                    check.result_details = result['details']
+                    check.recommendations = result['recommendations']
+                    check.save()
+                    
+                    messages.success(request, f'✅ Encyclopedia entry for {plant_name} found!')
+                    return redirect('check_result', pk=check.pk)
+                    
+                except Exception as e:
+                    import traceback
+                    print("--- AI SEARCH ERROR ---")
+                    traceback.print_exc()
+                    messages.error(request, f'❌ Search error: {str(e)}')
+                    return redirect('upload_check', check_type=check_type)
 
-                # Run analysis — try ML model first, fall back to Gemini AI
-            try:
-                from django.conf import settings as app_settings
-                result = None
-
-                if check_type == 'yield':
-                    from .ml_engine import predict_crop as ml_predict_crop
-                    result = ml_predict_crop(check.temperature, check.soil_type, check.rainfall, check.proposed_crop)
-                else:
-                    # Attempt ML-based analysis first
-                    if getattr(app_settings, 'USE_ML_MODEL', False):
-                        try:
-                            from .ml_engine import analyze_plant_image as ml_analyze
-                            from .ml_engine import is_model_available
-                            if is_model_available():
-                                result = ml_analyze(check.image.path, check_type)
-                        except Exception as ml_err:
-                            # ML failed — will fall back to Gemini
-                            result = None
-
-                    # Fall back to Gemini AI if ML didn't produce a result
-                    if result is None:
-                        from .ai_checks import analyze_plant_image as ai_analyze
-                        result = ai_analyze(check.image.path, check_type)
-
-                check.result_title = result['title']
-                check.result_summary = result['summary']
-                check.severity = result['severity']
-                check.confidence_score = result['confidence']
-                check.result_details = result['details']
-                check.recommendations = result['recommendations']
+            else:
+                # Handle Standard Image Uploads or Yield
+                check = form.save(commit=False)
+                check.user = request.user
+                check.check_type = check_type
                 check.save()
 
-                messages.success(request, f'✅ {meta["title"]} complete!')
-                return redirect('check_result', pk=check.pk)
+                # Run analysis — try ML model first, fall back to Gemini AI
+                try:
+                    from django.conf import settings as app_settings
+                    result = None
 
-            except ValueError as e:
-                import traceback
-                print("--- AI ANALYSIS ERROR ---")
-                traceback.print_exc()
-                print("-------------------------")
-                messages.warning(request, str(e))
-                # Still redirect to result page even if analysis failed
-                return redirect('check_result', pk=check.pk)
-            except Exception as e:
-                import traceback
-                print("--- AI ANALYSIS ERROR ---")
-                traceback.print_exc()
-                print("-------------------------")
-                messages.error(request, f'❌ Analysis error: {str(e)[:100]}')
-                return redirect('check_result', pk=check.pk)
+                    if check_type == 'yield':
+                        from .ml_engine import predict_crop as ml_predict_crop
+                        result = ml_predict_crop(check.temperature, check.soil_type, check.rainfall, check.proposed_crop)
+                    else:
+                        # Attempt ML-based analysis first
+                        if getattr(app_settings, 'USE_ML_MODEL', False):
+                            try:
+                                from .ml_engine import analyze_plant_image as ml_analyze
+                                from .ml_engine import is_model_available
+                                if is_model_available():
+                                    result = ml_analyze(check.image.path, check_type)
+                            except Exception as ml_err:
+                                # ML failed — will fall back to Gemini
+                                result = None
+
+                        # Fall back to Gemini AI if ML didn't produce a result
+                        if result is None:
+                            from .ai_checks import analyze_plant_image as ai_analyze
+                            result = ai_analyze(check.image.path, check_type)
+
+                    check.result_title = result['title']
+                    check.result_summary = result['summary']
+                    check.severity = result['severity']
+                    check.confidence_score = result['confidence']
+                    check.result_details = result['details']
+                    check.recommendations = result['recommendations']
+                    check.save()
+
+                    messages.success(request, f'✅ {meta["title"]} complete!')
+                    return redirect('check_result', pk=check.pk)
+
+                except ValueError as e:
+                    messages.warning(request, str(e))
+                    return redirect('check_result', pk=check.pk)
+                except Exception as e:
+                    messages.error(request, f'❌ Analysis error: {str(e)[:100]}')
+                    return redirect('check_result', pk=check.pk)
         else:
-            messages.error(request, 'Please upload a valid image.')
+            messages.error(request, 'Please provide valid input.')
     else:
         if check_type == 'yield':
             form = CropRecommendationForm()
+        elif check_type == 'encyclopedia':
+            form = PlantCheckForm() # Used for the upload part
+            search_form = EncyclopediaSearchForm()
+            return render(request, 'checks/upload.html', {
+                'form': form,
+                'search_form': search_form,
+                'check_type': check_type,
+                'meta': meta,
+            })
         else:
             form = PlantCheckForm()
 

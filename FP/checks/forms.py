@@ -24,3 +24,13 @@ class CropRecommendationForm(forms.ModelForm):
             'rainfall': forms.NumberInput(attrs={'class': 'w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none', 'placeholder': 'e.g., 1200', 'step': '0.1'}),
             'proposed_crop': forms.TextInput(attrs={'class': 'w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none', 'placeholder': 'e.g., Wheat, Rice (Optional)'}),
         }
+
+class EncyclopediaSearchForm(forms.Form):
+    plant_name = forms.CharField(
+        max_length=100,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-4 pl-12 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-lg',
+            'placeholder': 'Search any plant by name (e.g., Aloe Vera)'
+        })
+    )

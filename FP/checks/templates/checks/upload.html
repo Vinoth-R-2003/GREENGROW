@@ -49,6 +49,38 @@
                     </div>
                 </div>
             {% else %}
+                {% if check_type == 'encyclopedia' %}
+                <div class="p-8 space-y-6 bg-slate-50 border-b border-slate-100">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        Search by Name
+                    </h3>
+                    <p class="text-sm text-slate-500 mb-4">Type any plant name (e.g. Aloe Vera, Lavender) to instantly generate an encyclopedia entry.</p>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        {{ search_form.plant_name }}
+                    </div>
+                </div>
+
+                <div class="relative flex items-center py-4 px-8">
+                    <div class="flex-grow border-t border-slate-200"></div>
+                    <span class="flex-shrink-0 mx-4 text-sm text-slate-400 font-bold uppercase tracking-wider">OR</span>
+                    <div class="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <div class="px-8 pt-2 pb-0">
+                    <h3 class="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                        Scan a Photo
+                    </h3>
+                    <p class="text-sm text-slate-500">Upload an image of a plant to identify it.</p>
+                </div>
+                {% endif %}
+
             <!-- Drop Zone -->
             <div id="drop-zone"
                 class="relative p-8 border-2 border-dashed border-slate-300 m-5 rounded-xl cursor-pointer
@@ -175,6 +207,28 @@
             submitBtn.style.transform = 'scale(1)';
         };
     }
+
+    function disableCheckButton() {
+        submitBtn.disabled = true;
+        submitBtn.classList.remove('bg-emerald-600', 'bg-emerald-700', 'shadow-lg', 'shadow-emerald-200', 'cursor-pointer');
+        submitBtn.classList.add('bg-slate-300', 'cursor-not-allowed');
+        submitBtn.style.transform = 'scale(1)';
+        submitBtn.onmouseenter = null;
+        submitBtn.onmouseleave = null;
+    }
+
+    {% if check_type == 'encyclopedia' %}
+    const plantNameInput = document.querySelector('input[name="plant_name"]');
+    if (plantNameInput) {
+        plantNameInput.addEventListener('input', function() {
+            if (this.value.trim().length > 0) {
+                enableCheckButton();
+            } else if (!imageInput.files || !imageInput.files.length) {
+                disableCheckButton();
+            }
+        });
+    }
+    {% endif %}
 
     // File input change
     imageInput.addEventListener('change', function() {

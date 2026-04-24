@@ -364,3 +364,80 @@ Provide your analysis in the following JSON format ONLY (no markdown, no explana
             raise ValueError(f"AI recommendation failed: {e}")
 
     raise ValueError(f"AI recommendation failed after {max_retries} retries: {last_error}")
+
+
+# ---------------------------------------------------------------------------
+# Google Gemini — Plant Encyclopedia Search
+# ---------------------------------------------------------------------------
+
+def search_plant_encyclopedia(plant_name):
+    """
+    Use Google Gemini AI to generate an encyclopedia entry for a given plant name.
+    """
+    from google import genai
+    from django.conf import settings
+
+    api_key = getattr(settings, "GEMINI_API_KEY", "")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY is not configured in settings.")
+
+    client = genai.Client(api_key=api_key)
+
+    prompt = f"""You are an expert botanist and horticulturist. Provide a comprehensive encyclopedia entry for the plant: "{plant_name}".
+Ensure the plant exists. If it's a completely invalid or fake plant name, return an empty JSON object {{}} or indicate it's unknown.
+
+Return strictly in the following JSON format ONLY:
+{{
+    "title": "Common Name (Scientific Name)",
+    "summary": "A 3-4 sentence comprehensive description of the plant.",
+    "severity": "healthy",
+    "confidence": 99,
+    "details": {{
+        "plant_identified": "Common Name",
+        "family": "Botanical Family",
+        "light_requirements": "Sunlight needs",
+        "water_requirements": "Watering needs",
+        "soil_type": "Best soil type",
+        "common_uses": ["Use 1", "Use 2", "Use 3"]
+    }},
+    "recommendations": "1. Step to grow\\n2. Step to care\\n3. Step to harvest/maintain"
+}}"""
+
+    max_retries = 3
+    last_error = None
+
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[prompt],
+            )
+            text = response.text.strip()
+            text = re.sub(r"^```(?:json)?\s*", "", text)
+            text = re.sub(r"\s*```$", "", text)
+            text = text.strip()
+
+            result = json.loads(text)
+            
+            if not result or "title" not in result:
+                raise ValueError(f"Could not find information for '{plant_name}'.")
+
+            return {
+                "title": str(result.get("title", f"{plant_name} Identified")),
+                "summary": str(result.get("summary", "")),
+                "severity": "healthy",
+                "confidence": 99.0,
+                "details": result.get("details", {}),
+                "recommendations": str(result.get("recommendations", "")),
+            }
+
+        except json.JSONDecodeError as e:
+            raise ValueError(f"AI returned an invalid response. Please try again.")
+        except Exception as e:
+            last_error = e
+            if attempt < max_retries - 1:
+                time.sleep((2 ** attempt) * 2)
+                continue
+            raise ValueError(f"AI search failed: {e}")
+
+    raise ValueError(f"AI search failed after retries: {last_error}")
