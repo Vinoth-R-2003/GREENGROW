@@ -49,7 +49,6 @@ def analyze_plant_image(image_path, check_type):
         "images": [encoded_image],
         "health": "all",
         "classification_level": "species",
-        "similar_images": False,
         "details": [
             "common_names",
             "description",
