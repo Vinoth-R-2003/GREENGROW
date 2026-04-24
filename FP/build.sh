@@ -14,4 +14,7 @@ python manage.py collectstatic --no-input
 echo "Running database migrations..."
 python manage.py migrate
 
+echo "Checking Cloudinary configuration..."
+python -c "import os; cn = os.environ.get('CLOUDINARY_CLOUD_NAME',''); print('[OK] CLOUDINARY_CLOUD_NAME is SET (' + cn[:4] + '...)') if cn else print('[WARNING] CLOUDINARY_CLOUD_NAME is NOT SET')"
+
 echo "Build complete!"

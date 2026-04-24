@@ -182,16 +182,23 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Cloudinary configuration for persistent media storage on Render
+CLOUDINARY_CLOUD_NAME_VAL = config('CLOUDINARY_CLOUD_NAME', default='') or os.environ.get('CLOUDINARY_CLOUD_NAME', '')
+CLOUDINARY_API_KEY_VAL = config('CLOUDINARY_API_KEY', default='') or os.environ.get('CLOUDINARY_API_KEY', '')
+CLOUDINARY_API_SECRET_VAL = config('CLOUDINARY_API_SECRET', default='') or os.environ.get('CLOUDINARY_API_SECRET', '')
+
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
-    'API_KEY': config('CLOUDINARY_API_KEY', default=''),
-    'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
+    'CLOUD_NAME': CLOUDINARY_CLOUD_NAME_VAL,
+    'API_KEY': CLOUDINARY_API_KEY_VAL,
+    'API_SECRET': CLOUDINARY_API_SECRET_VAL,
     'SECURE': True,
 }
 
-# Use Cloudinary for media files in production, local in development
-if config('CLOUDINARY_CLOUD_NAME', default=''):
+# Always use Cloudinary if cloud name is available
+if CLOUDINARY_CLOUD_NAME_VAL:
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    print(f"[OK] Cloudinary configured: {CLOUDINARY_CLOUD_NAME_VAL}")
+else:
+    print("[WARNING] Cloudinary not configured - using local media storage")
 
 # Channels configuration
 ASGI_APPLICATION = 'app_core.asgi.application'
