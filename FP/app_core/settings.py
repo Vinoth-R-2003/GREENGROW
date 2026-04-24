@@ -152,8 +152,6 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-# WhiteNoise configuration for serving static files
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 WHITENOISE_USE_FINDERS = True
 
 # Default primary key field type
@@ -193,11 +191,26 @@ CLOUDINARY_STORAGE = {
     'SECURE': True,
 }
 
-# Force Cloudinary for all media uploads if configured
+# Django 4.2+ STORAGES dictionary (replaces DEFAULT_FILE_STORAGE & STATICFILES_STORAGE)
 if _CLOUDINARY_CLOUD_NAME:
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    STORAGES = {
+        'default': {
+            'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        },
+    }
     print(f"[CLOUDINARY] Active — Cloud: {_CLOUDINARY_CLOUD_NAME}")
 else:
+    STORAGES = {
+        'default': {
+            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        },
+    }
     print("[CLOUDINARY] NOT configured — images will be lost on server restart!")
 
 # Channels configuration
