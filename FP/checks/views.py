@@ -68,8 +68,8 @@ def upload_check(request, check_type):
                 result = None
 
                 if check_type == 'yield':
-                    from .ai_checks import analyze_crop_recommendation as ai_analyze
-                    result = ai_analyze(check.temperature, check.soil_type, check.rainfall, check.proposed_crop)
+                    from .ml_engine import predict_crop as ml_predict_crop
+                    result = ml_predict_crop(check.temperature, check.soil_type, check.rainfall, check.proposed_crop)
                 else:
                     # Attempt ML-based analysis first
                     if getattr(app_settings, 'USE_ML_MODEL', False):

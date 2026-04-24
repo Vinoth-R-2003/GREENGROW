@@ -352,3 +352,96 @@ def _get_color_analysis(info):
     elif sev == 'medium':
         return 'Some discoloration or spotting observed'
     return 'Minor color changes detected'
+
+
+def predict_crop(temperature, soil_type, rainfall, proposed_crop=None):
+    """
+    Predict optimal crop using the locally trained Scikit-Learn RandomForest model.
+    """
+    import pandas as pd
+    import joblib
+    import os
+    
+    model_path = os.path.join(settings.BASE_DIR, 'checks', 'ml_models', 'crop_prediction_model.pkl')
+    
+    if not os.path.exists(model_path):
+        raise ValueError("Crop Prediction ML model not found. Please run 'python checks/train_crop_model.py' first.")
+        
+    try:
+        pipeline = joblib.load(model_path)
+    except Exception as e:
+        raise ValueError(f"Failed to load crop prediction model: {e}")
+        
+    # Prepare input data
+    input_data = pd.DataFrame([{
+        'Temperature': temperature,
+        'Rainfall': rainfall,
+        'Soil_Type': str(soil_type).lower() if soil_type else ''
+    }])
+    
+    # Predict
+    try:
+        predicted_crop = pipeline.predict(input_data)[0]
+        # Get probability to represent confidence
+        probs = pipeline.predict_proba(input_data)[0]
+        confidence = float(max(probs)) * 100
+    except Exception as e:
+        raise ValueError(f"Failed to run prediction: {e}")
+        
+    # Check proposed crop viability
+    viability = "Unknown"
+    severity = "medium"
+    summary_extra = ""
+    
+    if proposed_crop:
+        proposed_crop_lower = str(proposed_crop).lower().strip()
+        classes = pipeline.classes_
+        classes_lower = [c.lower() for c in classes]
+        
+        if proposed_crop_lower in classes_lower:
+            idx = classes_lower.index(proposed_crop_lower)
+            proposed_prob = probs[idx]
+            if proposed_prob > 0.3:
+                viability = "Viable"
+                severity = "low" if predicted_crop.lower() != proposed_crop_lower else "healthy"
+                summary_extra = f" Your proposed crop '{proposed_crop}' is viable under these conditions."
+            else:
+                viability = "Not Viable"
+                severity = "high"
+                summary_extra = f" Your proposed crop '{proposed_crop}' is likely not suitable for these conditions."
+        else:
+            summary_extra = f" We couldn't evaluate your proposed crop '{proposed_crop}' against our local dataset."
+            
+    if not proposed_crop or viability == "Unknown":
+        severity = "healthy"
+        
+    # Find alternatives
+    top_3_idx = np.argsort(probs)[-3:][::-1]
+    alternatives = [pipeline.classes_[i] for i in top_3_idx if pipeline.classes_[i] != predicted_crop]
+        
+    title = f"Ideal for {predicted_crop} Cultivation"
+    summary = f"Based on your environmental conditions (Temp: {temperature}°C, Rain: {rainfall}mm, Soil: {soil_type}), our offline Machine Learning model highly recommends growing {predicted_crop}." + summary_extra
+    
+    details = {
+        "best_recommended_crop": predicted_crop,
+        "proposed_crop_viability": viability,
+        "alternative_crops": alternatives,
+        "soil_suitability": "Good" if confidence > 60 else "Average",
+        "water_needs_meet": "Yes" if rainfall > 500 else "Requires Irrigation"
+    }
+    
+    recommendations = (
+        f"1. Prepare soil according to standard {predicted_crop} farming practices.\n"
+        f"2. Monitor local weather forecasts to optimize planting time.\n"
+        f"3. Ensure adequate irrigation if natural rainfall falls below historical averages.\n"
+        f"4. Consider organic fertilizers based on a local soil test."
+    )
+    
+    return {
+        "title": title,
+        "summary": summary,
+        "severity": severity,
+        "confidence": round(confidence, 1),
+        "details": details,
+        "recommendations": recommendations,
+    }
