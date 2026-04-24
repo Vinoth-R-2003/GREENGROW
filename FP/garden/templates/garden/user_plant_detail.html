@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-8">
+    <div class="mb-6">
+        <a href="{% url 'my_garden' %}" class="text-green-600 hover:text-green-800 font-medium">
+            &larr; Back to My Garden
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <!-- Header Section -->
+        <div
+            class="bg-green-600 p-6 md:p-8 text-white flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">{{ user_plant.plant.name }}</h1>
+                <p class="text-green-100 text-lg">Planted on {{ user_plant.date_planted }}</p>
+                <div class="mt-4 flex space-x-2">
+                    <span class="px-3 py-1 rounded-full text-sm font-semibold bg-white text-green-700">
+                        {{ user_plant.status }}
+                    </span>
+                    {% if user_plant.is_for_swap %}
+                    <span class="px-3 py-1 rounded-full text-sm font-semibold bg-yellow-400 text-yellow-900">
+                        Available for Swap
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="mt-6 md:mt-0 flex flex-col items-center">
+                {% if user_plant.qr_code %}
+                <img src="{{ user_plant.qr_code.url }}" alt="QR Code"
+                    class="w-32 h-32 bg-white p-2 rounded-lg shadow-md mb-2">
+                <a href="{{ user_plant.qr_code.url }}" download
+                    class="text-xs text-green-100 hover:text-white underline">Download QR</a>
+                {% else %}
+                <div
+                    class="w-32 h-32 bg-green-500 rounded-lg flex items-center justify-center mb-2 border-2 border-white border-dashed">
+                    <span class="text-green-200 text-xs text-center px-2">No QR Code</span>
+                </div>
+                <a href="{% url 'generate_qr_code' user_plant.id %}"
+                    class="text-xs bg-white text-green-700 px-3 py-1 rounded hover:bg-green-50">Generate QR</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-0 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+            <!-- Sidebar / Quick Actions -->
+            <div class="p-6 bg-gray-50 md:col-span-1 space-y-6">
+
+
+
+                <!-- Feature Navigation -->
+                <nav class="space-y-2">
+                    <h3 class="font-bold text-gray-800 mb-3 border-b pb-2">Manage Plant</h3>
+                    <a href="{% url 'plant_journal' user_plant.id %}"
+                        class="flex items-center p-3 rounded-lg hover:bg-white hover:shadow transition text-gray-700">
+                        <span class="text-2xl mr-3">📖</span>
+                        <span class="font-medium">Journal</span>
+                    </a>
+                    <a href="{% url 'task_list' user_plant.id %}"
+                        class="flex items-center p-3 rounded-lg hover:bg-white hover:shadow transition text-gray-700">
+                        <span class="text-2xl mr-3">✓</span>
+                        <span class="font-medium">Tasks & Reminders</span>
+                    </a>
+                    <a href="{% url 'harvest_list' user_plant.id %}"
+                        class="flex items-center p-3 rounded-lg hover:bg-white hover:shadow transition text-gray-700">
+                        <span class="text-2xl mr-3">🧺</span>
+                        <span class="font-medium">Harvest Log</span>
+                    </a>
+                    <a href="{% url 'health_log_list' user_plant.id %}"
+                        class="flex items-center p-3 rounded-lg hover:bg-white hover:shadow transition text-gray-700">
+                        <span class="text-2xl mr-3">🩺</span>
+                        <span class="font-medium">Health Check</span>
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="p-6 md:col-span-2">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Plant Overview</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-blue-800 mb-2">Upcoming Tasks</h4>
+                        {% if user_plant.tasks.filter.exists %}
+                        <ul class="text-sm space-y-1 text-blue-900">
+                            {% for task in user_plant.tasks.all|slice:":3" %}
+                            {% if not task.is_completed %}
+                            <li>• {{ task.task_type }} (Due: {{ task.due_date }})</li>
+                            {% endif %}
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-sm text-blue-600 italic">No pending tasks.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-green-800 mb-2">Total Harvest</h4>
+                        <!-- Simple aggregate logic would go here, for now static or loop sum -->
+                        <p class="text-3xl font-bold text-green-600">
+                            {{ user_plant.harvests.count }} <span
+                                class="text-sm font-normal text-green-800">records</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="prose max-w-none text-gray-600">
+                    <h3 class="text-lg font-semibold text-gray-800">About {{ user_plant.plant.name }}</h3>
+                    <p class="mb-4">{{ user_plant.plant.description|truncatewords:50 }}</p>
+
+                    <h4 class="font-medium text-gray-800 mt-4">How to Grow</h4>
+                    <p class="text-sm">{{ user_plant.plant.how_to_grow|truncatewords:30 }}</p>
+                </div>
+
+                {% if user_plant.notes %}
+                <div class="mt-8 p-4 bg-yellow-50 rounded-lg border border-yellow-100">
+                    <h4 class="font-semibold text-yellow-800 mb-1">Your Notes</h4>
+                    <p class="text-gray-700 italic">"{{ user_plant.notes }}"</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
