@@ -9,6 +9,9 @@ class User(AbstractUser):
     bio = models.TextField(blank=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     upi_id = models.CharField(max_length=50, blank=True, help_text="e.g. yourname@upi (required for getting payments)")
+    
+    # Social features
+    following = models.ManyToManyField('self', symmetrical=False, related_name='followers', blank=True)
 
     def __str__(self):
         return self.username

@@ -319,7 +319,7 @@ Provide your analysis in the following JSON format ONLY (no markdown, no explana
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-1.5-flash",
                 contents=[prompt],
             )
             text = response.text.strip()
@@ -409,7 +409,7 @@ Return strictly in the following JSON format ONLY:
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-1.5-flash",
                 contents=[prompt],
             )
             text = response.text.strip()

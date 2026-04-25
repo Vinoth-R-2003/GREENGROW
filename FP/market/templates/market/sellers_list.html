@@ -65,10 +65,18 @@
                             </div>
                         </div>
                     </div>
-                    <a href="{% url 'chat_room' item_data.seller.id %}"
-                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                        Message
-                    </a>
+                    <div class="flex items-center gap-2">
+                        {% if request.user.is_authenticated and item_data.seller != request.user and not item_data.is_following %}
+                        <button class="market-cultivate-btn text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100"
+                            data-user-id="{{ item_data.seller.id }}">
+                            Cultivate
+                        </button>
+                        {% endif %}
+                        <a href="{% url 'chat_room' item_data.seller.id %}"
+                            class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                            Message
+                        </a>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 gap-4">
@@ -113,4 +121,31 @@
         {% endfor %}
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const marketCultivateBtns = document.querySelectorAll('.market-cultivate-btn');
+        marketCultivateBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.dataset.userId;
+                
+                fetch(`/users/toggle_cultivate/${userId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Hide button after success
+                        this.style.display = 'none';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        });
+    });
+</script>
 {% endblock %}

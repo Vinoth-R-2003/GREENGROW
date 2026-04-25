@@ -47,6 +47,14 @@ def profile_view(request, username=None):
     products_count = user.products.count()
     orders_count = user.orders.count()
     
+    # Social features
+    is_following = False
+    if request.user.is_authenticated and user != request.user:
+        is_following = request.user.following.filter(id=user.id).exists()
+    
+    followers_count = user.followers.count()
+    following_count = user.following.count()
+    
     context = {
         'profile_user': user,
         'products_count': products_count,
@@ -54,8 +62,35 @@ def profile_view(request, username=None):
         'is_own_profile': user == request.user,
         'user_products': user.products.all(),
         'user_posts': user.posts.all(),
+        'is_following': is_following,
+        'followers_count': followers_count,
+        'following_count': following_count,
     }
     return render(request, 'users/profile.html', context)
+
+@login_required
+@require_POST
+def toggle_cultivate(request, user_id):
+    """Follow/Unfollow a user (Cultivate)"""
+    user_to_follow = get_object_or_404(User, id=user_id)
+    if user_to_follow == request.user:
+        return JsonResponse({'status': 'error', 'message': 'You cannot cultivate yourself!'}, status=400)
+    
+    if request.user.following.filter(id=user_id).exists():
+        request.user.following.remove(user_to_follow)
+        is_following = False
+        message = f"You stopped cultivating {user_to_follow.username}"
+    else:
+        request.user.following.add(user_to_follow)
+        is_following = True
+        message = f"You are now cultivating {user_to_follow.username}"
+    
+    return JsonResponse({
+        'status': 'success',
+        'is_following': is_following,
+        'message': message,
+        'followers_count': user_to_follow.followers.count()
+    })
 
 @login_required
 def profile_edit(request):

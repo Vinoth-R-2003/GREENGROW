@@ -14,4 +14,5 @@ urlpatterns = [
     path('settings/delete_account/', views.delete_account, name='delete_account'),
     path('settings/password/', auth_views.PasswordChangeView.as_view(template_name='users/password_change.html'), name='password_change'),
     path('settings/password/done/', auth_views.PasswordChangeDoneView.as_view(template_name='users/password_change_done.html'), name='password_change_done'),
+    path('toggle_cultivate/<int:user_id>/', views.toggle_cultivate, name='toggle_cultivate'),
 ]

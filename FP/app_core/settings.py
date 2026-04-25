@@ -171,6 +171,10 @@ GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
 # Plant.id API Key (used for plant health, disease, and encyclopedia checks)
 PLANT_ID_API_KEY = config('PLANT_ID_API_KEY', default='')
 
+# Razorpay Configuration
+RAZORPAY_KEY_ID = config('RAZORPAY_KEY_ID', default='')
+RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET', default='')
+
 
 # ML Model Configuration
 # Set USE_ML_MODEL=True to use local ML model, False to use Gemini AI

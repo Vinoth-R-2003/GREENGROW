@@ -167,6 +167,10 @@ class CallConsumer(AsyncWebsocketConsumer):
     async def call_message(self, event):
         message = event['message']
 
+        # If this is a call-answer and we are the caller (we have the call_log_id), update the status
+        if message.get('type') == 'call-answer' and self.call_log_id:
+            await self.update_call_log_status(self.call_log_id, 'completed')
+
         # Send message to WebSocket
         await self.send(text_data=json.dumps(message))
 

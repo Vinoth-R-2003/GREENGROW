@@ -41,12 +41,18 @@ def item_sellers(request, item_id):
         # Get seller's average rating
         avg_rating = seller.received_ratings.aggregate(Avg('score'))['score__avg']
         
+        # Check if following
+        is_following = False
+        if request.user.is_authenticated:
+            is_following = request.user.following.filter(id=seller.id).exists()
+        
         results.append({
             'seller': seller,
             'products': seller_products,
             'distance': round(distance, 1) if distance is not None else None,
             'rating': round(avg_rating, 1) if avg_rating else None,
-            'rating_count': seller.received_ratings.count()
+            'rating_count': seller.received_ratings.count(),
+            'is_following': is_following
         })
     
     # Sort by distance

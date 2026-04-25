@@ -13,6 +13,7 @@ class CallManager {
         this.callTimerInterval = null;
         this.callTimeout = null; // Timeout for unanswered calls
         this.callAnswered = false; // Track if call was answered
+        this.iceCandidateQueue = []; // Queue for candidates before PC is ready
 
         // ICE servers configuration
         this.iceServers = {
@@ -178,6 +179,9 @@ class CallManager {
             });
 
             await this.peerConnection.setRemoteDescription(new RTCSessionDescription(this.pendingOffer));
+            
+            // Process any queued candidates that arrived before we accepted
+            this.processQueuedCandidates();
 
             const answer = await this.peerConnection.createAnswer();
             await this.peerConnection.setLocalDescription(answer);
@@ -225,6 +229,10 @@ class CallManager {
         this.callAnswered = true;
 
         await this.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+        
+        // Process any queued candidates
+        this.processQueuedCandidates();
+
         this.showCallModal('active');
         this.startCallTimer();
     }
@@ -234,10 +242,31 @@ class CallManager {
         // Convert to numbers for comparison
         if (parseInt(data.to) !== this.currentUserId) return;
 
-        try {
-            await this.peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-        } catch (error) {
-            console.error('Error adding ICE candidate:', error);
+        console.log('Received ICE candidate from:', data.from);
+        if (this.peerConnection && this.peerConnection.remoteDescription) {
+            try {
+                await this.peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                console.log('Successfully added ICE candidate');
+            } catch (error) {
+                console.error('Error adding ICE candidate:', error);
+            }
+        } else {
+            console.log('Queuing ICE candidate (PeerConnection/RemoteDescription not ready)');
+            this.iceCandidateQueue.push(data.candidate);
+        }
+    }
+
+    // Process queued ICE candidates
+    async processQueuedCandidates() {
+        console.log(`Processing ${this.iceCandidateQueue.length} queued ICE candidates`);
+        while (this.iceCandidateQueue.length > 0) {
+            const candidate = this.iceCandidateQueue.shift();
+            try {
+                await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                console.log('Successfully added queued ICE candidate');
+            } catch (error) {
+                console.error('Error adding queued ICE candidate:', error);
+            }
         }
     }
 
