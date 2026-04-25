@@ -1,9 +1,9 @@
-{% load static tailwind_tags %}
+{% load static tailwind_tags i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE }}">
 
 <head>
-    <title>{% block title %}GREENGROW - Farmer's Marketplace{% endblock %}</title>
+    <title>{% block title %}{% trans "GREENGROW - Farmer's Marketplace" %}{% endblock %}</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -120,23 +120,46 @@
                 <div class="hidden sm:ml-6 sm:flex sm:space-x-8 items-center">
                     <a href="/"
                         class="border-transparent text-slate-500 hover:text-emerald-600 hover:border-emerald-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
-                        Feed
+                        {% trans "Feed" %}
                     </a>
                     <a href="/market"
                         class="border-transparent text-slate-500 hover:text-emerald-600 hover:border-emerald-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
-                        Marketplace
+                        {% trans "Marketplace" %}
                     </a>
                     <a href="{% url 'checks_dashboard' %}"
                         class="border-transparent text-slate-500 hover:text-emerald-600 hover:border-emerald-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
-                        🌿 MY GARDEN
+                        {% trans "🌿 MY GARDEN" %}
                     </a>
                     <a href="{% url 'conversations' %}"
                         class="border-transparent text-slate-500 hover:text-emerald-600 hover:border-emerald-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
-                        Messages
+                        {% trans "Messages" %}
                     </a>
                 </div>
 
                 <div class="flex items-center gap-4">
+                    <!-- Language Switcher -->
+                    <div class="relative group">
+                        <form action="{% url 'set_language' %}" method="post" id="lang-form" class="inline">
+                            {% csrf_token %}
+                            <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                            <select name="language" onchange="this.form.submit()" 
+                                class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block p-1.5 appearance-none pr-8 cursor-pointer hover:bg-slate-100 transition-colors">
+                                {% get_current_language as LANGUAGE_CODE %}
+                                {% get_available_languages as LANGUAGES %}
+                                {% for lang in LANGUAGES %}
+                                    <option value="{{ lang.0 }}" {% if lang.0 == LANGUAGE_CODE %}selected{% endif %}>
+                                        {% if lang.0 == 'en' %}🇺🇸 EN{% elif lang.0 == 'ta' %}🇮🇳 தமிழ்{% else %}{{ lang.1 }}{% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                                </svg>
+                            </div>
+                        </form>
+                    </div>
+
                     {% if user.is_authenticated %}
                     <!-- User Dropdown Menu -->
                     <div class="relative" id="userDropdown">

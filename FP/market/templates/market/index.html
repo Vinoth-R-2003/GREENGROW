@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
 {% block content %}
 <div class="px-4">
@@ -70,7 +71,7 @@
             </div>
 
             <h3 class="font-semibold text-slate-900 text-center">{{ item.name }}</h3>
-            <p class="text-xs text-slate-500 mt-1">View Sellers</p>
+            <p class="text-xs text-slate-500 mt-1">{% trans "View Sellers" %}</p>
         </a>
         {% empty %}
         <div class="col-span-full text-center py-20">

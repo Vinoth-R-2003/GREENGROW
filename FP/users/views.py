@@ -55,6 +55,13 @@ def profile_view(request, username=None):
     followers_count = user.followers.count()
     following_count = user.following.count()
     
+    from django.db.models import Avg
+    from market.models import OrderFeedback
+    
+    # Received feedbacks
+    received_feedbacks = user.received_order_feedbacks.all()
+    avg_rating = received_feedbacks.aggregate(Avg('score'))['score__avg']
+    
     context = {
         'profile_user': user,
         'products_count': products_count,
@@ -65,6 +72,8 @@ def profile_view(request, username=None):
         'is_following': is_following,
         'followers_count': followers_count,
         'following_count': following_count,
+        'received_feedbacks': received_feedbacks,
+        'avg_rating': round(avg_rating, 1) if avg_rating else None,
     }
     return render(request, 'users/profile.html', context)
 

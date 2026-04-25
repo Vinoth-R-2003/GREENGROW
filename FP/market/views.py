@@ -4,7 +4,33 @@ from django.db.models import Avg
 from django.contrib import messages
 from django.conf import settings
 from math import radians, cos, sin, asin, sqrt
-from .models import Product, Item, Order, OrderItem
+from .models import Product, Item, Order, OrderItem, OrderFeedback
+
+@login_required
+def submit_feedback(request, order_id):
+    order = get_object_or_404(Order, id=order_id, buyer=request.user)
+    
+    if hasattr(order, 'feedback'):
+        messages.error(request, 'You have already provided feedback for this order.')
+        return redirect('order_detail', order_id=order.id)
+        
+    if request.method == 'POST':
+        score = request.POST.get('score')
+        comment = request.POST.get('comment', '')
+        
+        if score:
+            OrderFeedback.objects.create(
+                order=order,
+                buyer=request.user,
+                seller=order.seller,
+                score=int(score),
+                comment=comment
+            )
+            messages.success(request, 'Thank you for your feedback!')
+        else:
+            messages.error(request, 'Please provide a rating score.')
+            
+    return redirect('order_detail', order_id=order.id)
 from .forms import ProductForm
 from .utils import haversine
 
@@ -180,6 +206,18 @@ def order_cancel(request, order_id):
         else:
             messages.error(request, f'Order #{order.id} cannot be cancelled because its status is {order.status}.')
             
+    return redirect('order_detail', order_id=order.id)
+
+@login_required
+def order_complete(request, order_id):
+    order = get_object_or_404(Order, id=order_id, seller=request.user)
+    if request.method == 'POST':
+        if order.status == 'confirmed':
+            order.status = 'completed'
+            order.save()
+            messages.success(request, f'Order #{order.id} marked as completed.')
+        else:
+            messages.error(request, 'Order cannot be marked as completed.')
     return redirect('order_detail', order_id=order.id)
 
 @login_required

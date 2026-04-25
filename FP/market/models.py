@@ -80,3 +80,17 @@ class OrderItem(models.Model):
     @property
     def subtotal(self):
         return self.quantity * self.price_at_purchase
+
+class OrderFeedback(models.Model):
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='feedback')
+    buyer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='given_order_feedbacks')
+    seller = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_order_feedbacks')
+    score = models.IntegerField(default=5, choices=[(i, i) for i in range(1, 6)])
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Feedback for Order #{self.order.id} by {self.buyer.username}"

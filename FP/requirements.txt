@@ -18,6 +18,7 @@ python-decouple==3.8
 # WebSockets/Channels
 channels==4.2.0
 daphne==4.1.2
+channels-redis==4.2.1
 
 # Image Processing
 Pillow==11.1.0

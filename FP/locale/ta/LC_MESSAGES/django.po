@@ -1,0 +1,64 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: GREENGROW\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-04-25 12:20+0530\n"
+"PO-Revision-Date: 2026-04-25 12:20+0530\n"
+"Last-Translator: antigravity\n"
+"Language-Team: Tamil\n"
+"Language: ta\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "GREENGROW - Farmer's Marketplace"
+msgstr "க்ரீன்க்ரோ - விவசாயிகள் சந்தை"
+
+msgid "Feed"
+msgstr "செய்தி ஓடை"
+
+msgid "Marketplace"
+msgstr "சந்தை"
+
+msgid "🌿 MY GARDEN"
+msgstr "🌿 என் தோட்டம்"
+
+msgid "Messages"
+msgstr "செய்திகள்"
+
+msgid "Fresh from the Farm"
+msgstr "பண்ணையிலிருந்து நேரடியாக"
+
+msgid "Find local produce near you"
+msgstr "உங்களுக்கு அருகில் உள்ள உள்ளூர் விளைபொருட்களைக் கண்டறியவும்"
+
+msgid "Search for products (e.g., Tomato)..."
+msgstr "தயாரிப்புகளைத் தேடுங்கள் (உதாரணமாக, தக்காளி)..."
+
+msgid "Sell Product"
+msgstr "விற்பனை செய்"
+
+msgid "List Item"
+msgstr "பட்டியலிடு"
+
+msgid "View Sellers"
+msgstr "விற்பனையாளர்களைப் பார்"
+
+msgid "English"
+msgstr "ஆங்கிலம்"
+
+msgid "Tamil"
+msgstr "தமிழ்"
+
+msgid "Welcome back"
+msgstr "மீண்டும் வருக"
+
+msgid "Sign Out"
+msgstr "வெளியேறு"
+
+msgid "Sign In"
+msgstr "உள்நுழை"
+
+msgid "Register"
+msgstr "பதிவு செய்"
