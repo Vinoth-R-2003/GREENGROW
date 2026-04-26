@@ -126,7 +126,7 @@
                 <div class="flex items-center gap-4">
                     {% if product.item.image %}
                     <div class="w-16 h-16 shrink-0">
-                        <img src="{{ product.item.image.url }}" alt="{{ product.item.name }}" class="w-full h-full object-cover rounded-lg opacity-80 group-hover:opacity-100 transition-opacity">
+                        <img src="{{ product.item.get_image_url }}" alt="{{ product.item.name }}" class="w-full h-full object-cover rounded-lg opacity-80 group-hover:opacity-100 transition-opacity">
                     </div>
                     {% else %}
                     <div class="w-16 h-16 shrink-0 bg-emerald-50 text-emerald-500 rounded-lg flex items-center justify-center text-2xl font-bold uppercase">{{ product.item.name|slice:":1" }}</div>
@@ -146,7 +146,7 @@
                 <div class="flex items-center gap-4">
                     {% if product.item.image %}
                     <div class="w-16 h-16 shrink-0">
-                        <img src="{{ product.item.image.url }}" alt="{{ product.item.name }}" class="w-full h-full object-cover rounded-lg">
+                        <img src="{{ product.item.get_image_url }}" alt="{{ product.item.name }}" class="w-full h-full object-cover rounded-lg">
                     </div>
                     {% else %}
                     <div class="w-16 h-16 shrink-0 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center text-2xl font-bold uppercase">{{ product.item.name|slice:":1" }}</div>

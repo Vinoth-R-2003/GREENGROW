@@ -39,7 +39,7 @@
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="relative h-64 md:h-80 lg:h-96 bg-emerald-50">
             {% if plant.image %}
-            <img src="{{ plant.image.url }}" alt="{{ plant.name }}" class="w-full h-full object-cover">
+            <img src="{{ plant.get_image_url }}" alt="{{ plant.name }}" class="w-full h-full object-cover">
             {% else %}
             <div class="flex items-center justify-center h-full text-emerald-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24" fill="none" viewBox="0 0 24 24"

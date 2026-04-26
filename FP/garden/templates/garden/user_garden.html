@@ -22,7 +22,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
             <div class="relative h-40 bg-emerald-50">
                 {% if user_plant.plant.image %}
-                <img src="{{ user_plant.plant.image.url }}" alt="{{ user_plant.plant.name }}"
+                <img src="{{ user_plant.plant.get_image_url }}" alt="{{ user_plant.plant.name }}"
                     class="w-full h-full object-cover">
                 {% else %}
                 <div class="flex items-center justify-center h-full text-emerald-200">
