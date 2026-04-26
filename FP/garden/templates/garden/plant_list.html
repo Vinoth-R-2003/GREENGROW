@@ -22,7 +22,7 @@
             class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-lg transition-all group flex flex-col">
             <div class="h-48 bg-emerald-50 relative overflow-hidden">
                 {% if plant.image %}
-                <img src="{{ plant.image.url }}" alt="{{ plant.name }}"
+                <img src="{{ plant.get_image_url }}" alt="{{ plant.name }}"
                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                 {% else %}
                 <div class="flex items-center justify-center h-full text-emerald-200">

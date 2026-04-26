@@ -14,7 +14,7 @@ plants_data = [
         "uses": "Salads, sauces, soups, sandwiches, and fresh eating.",
         "how_to_grow": "Needs full sun and well-drained soil. Provide support with stakes or cages. Water consistently at the base.",
         "how_to_use": "Wash before use. Can be eaten raw or cooked in various dishes.",
-        "image": "item_types/tomato.png"
+        "image": "tomato.png"
     },
     {
         "name": "Carrot",
@@ -22,7 +22,7 @@ plants_data = [
         "uses": "Raw snacks, salads, soups, stews, juices, and desserts like carrot cake.",
         "how_to_grow": "Sow seeds directly in loose, sandy soil. Requires consistent moisture and thinning of seedlings.",
         "how_to_use": "Peel or scrub clean. Can be eaten raw, boiled, roasted, or steamed.",
-        "image": "item_types/carrot.png"
+        "image": "carrot.png"
     },
     {
         "name": "Spinach",
@@ -30,7 +30,7 @@ plants_data = [
         "uses": "Salads, smoothies, sautéed as a side dish, and in pastas.",
         "how_to_grow": "Prefers cool weather. Sow in rich, moist soil in partial shade to full sun.",
         "how_to_use": "Wash thoroughly to remove grit. Use raw or cook quickly.",
-        "image": "item_types/spinach.png"
+        "image": "spinach.png"
     },
     {
         "name": "Apple",
@@ -38,7 +38,7 @@ plants_data = [
         "uses": "Fresh eating, pies, juices, cider, and sauces.",
         "how_to_grow": "Requires cross-pollination with another apple variety. Prune annually and watch for pests.",
         "how_to_use": "Wash and eat fresh, or peel and core for cooking.",
-        "image": "item_types/apple.png"
+        "image": "apple.png"
     },
     {
         "name": "Mango",
@@ -46,7 +46,7 @@ plants_data = [
         "uses": "Fresh eating, smoothies, desserts, salsas, and chutneys.",
         "how_to_grow": "Thrives in warm, tropical climates with plenty of sun and well-draining soil.",
         "how_to_use": "Peel and slice away from the large flat pit.",
-        "image": "item_types/mango.png"
+        "image": "mango.png"
     },
     {
         "name": "Potato",
@@ -54,7 +54,7 @@ plants_data = [
         "uses": "Boiled, baked, fried, mashed, and in salads.",
         "how_to_grow": "Plant 'seed potatoes' in deep, loose soil. Hill the soil around the plants as they grow.",
         "how_to_use": "Wash and peel if desired. Must be cooked before eating.",
-        "image": "item_types/potato.png"
+        "image": "potato.png"
     },
     {
         "name": "Strawberry",
@@ -62,7 +62,7 @@ plants_data = [
         "uses": "Fresh eating, desserts, jams, and smoothies.",
         "how_to_grow": "Requires full sun and well-drained soil rich in organic matter. Mulch with straw to keep fruit off the ground.",
         "how_to_use": "Wash and remove the green hull before eating.",
-        "image": "item_types/strawberry.png"
+        "image": "strawberry.png"
     },
     {
         "name": "Broccoli",
@@ -70,7 +70,7 @@ plants_data = [
         "uses": "Steamed, roasted, in stir-frys, and raw with dip.",
         "how_to_grow": "Cool-season crop. Prefers full sun and rich, moist soil.",
         "how_to_use": "Wash and cut into florets. Stems are also edible if peeled.",
-        "image": "item_types/broccoli.png"
+        "image": "broccoli.png"
     },
     {
         "name": "Banana",
@@ -78,7 +78,7 @@ plants_data = [
         "uses": "Fresh eating, smoothies, baking (banana bread), and desserts.",
         "how_to_grow": "Requires a tropical climate with high humidity, plenty of water, and rich soil.",
         "how_to_use": "Peel and eat.",
-        "image": "item_types/banana.png"
+        "image": "banana.png"
     },
     {
         "name": "Bell Pepper",
@@ -86,7 +86,7 @@ plants_data = [
         "uses": "Salads, stir-frys, stuffing, and roasting.",
         "how_to_grow": "Needs warm weather and full sun. Keep soil moist and well-fertilized.",
         "how_to_use": "Remove seeds and inner ribs before slicing.",
-        "image": "item_types/bell_pepper.png"
+        "image": "bell_pepper.png"
     },
     {
         "name": "Onion",
@@ -94,7 +94,7 @@ plants_data = [
         "uses": "A staple base for soups, stews, stir-frys, and salads.",
         "how_to_grow": "Can be grown from seeds, sets, or transplants. Requires well-drained soil and weed control.",
         "how_to_use": "Peel the outer papery skin and chop or slice.",
-        "image": "item_types/onion.png"
+        "image": "onion.png"
     },
     {
         "name": "Cucumber",
@@ -102,7 +102,7 @@ plants_data = [
         "uses": "Salads, pickling, and fresh snacks.",
         "how_to_grow": "Needs full sun and plenty of water. Provide a trellis for climbing varieties.",
         "how_to_use": "Wash and slice. Some prefer peeling the skin.",
-        "image": "item_types/cucumber.png"
+        "image": "cucumber.png"
     },
     {
         "name": "Grape",
@@ -110,7 +110,7 @@ plants_data = [
         "uses": "Fresh eating, raisins, juice, and jelly.",
         "how_to_grow": "Requires a sturdy trellis or arbor. Needs full sun and regular pruning.",
         "how_to_use": "Wash thoroughly and eat fresh.",
-        "image": "item_types/grape.png"
+        "image": "grape.png"
     },
     {
         "name": "Watermelon",
@@ -118,7 +118,7 @@ plants_data = [
         "uses": "Fresh eating, juices, and fruit salads.",
         "how_to_grow": "Needs a long, warm growing season and lots of space for the vines to spread.",
         "how_to_use": "Cut into wedges or cubes.",
-        "image": "item_types/watermelon.png"
+        "image": "watermelon.png"
     },
     {
         "name": "Lemon",
@@ -126,7 +126,7 @@ plants_data = [
         "uses": "Flavoring, juices, zest, and garnishes.",
         "how_to_grow": "Thrives in warm, sunny climates. Can be grown in pots in cooler areas if moved indoors in winter.",
         "how_to_use": "Squeeze for juice or grate the skin for zest.",
-        "image": "item_types/lemon.png"
+        "image": "lemon.png"
     },
     {
         "name": "Garlic",
@@ -134,7 +134,7 @@ plants_data = [
         "uses": "Flavoring in almost all savory cuisines.",
         "how_to_grow": "Plant cloves in the fall in well-drained soil. Requires a cold period to develop bulbs.",
         "how_to_use": "Peel individual cloves and mince or crush.",
-        "image": "item_types/garlic.png"
+        "image": "garlic.png"
     },
     {
         "name": "Blueberry",
@@ -142,7 +142,7 @@ plants_data = [
         "uses": "Fresh eating, baking, jams, and smoothies.",
         "how_to_grow": "Requires acidic soil (pH 4.5-5.5). Best grown in full sun.",
         "how_to_use": "Wash gently before eating.",
-        "image": "item_types/blueberry.png"
+        "image": "blueberry.png"
     },
     {
         "name": "Cabbage",
@@ -150,7 +150,7 @@ plants_data = [
         "uses": "Coleslaw, sauerkraut, stir-frys, and soups.",
         "how_to_grow": "Cool-weather crop. Requires consistent moisture and firm soil.",
         "how_to_use": "Remove outer leaves and slice or shred.",
-        "image": "item_types/cabbage.png"
+        "image": "cabbage.png"
     },
     {
         "name": "Pineapple",
@@ -158,7 +158,7 @@ plants_data = [
         "uses": "Fresh eating, juices, desserts, and savory dishes (like pizza).",
         "how_to_grow": "Can be grown from the top of a store-bought pineapple. Needs warm temperatures and full sun.",
         "how_to_use": "Remove the tough outer skin and core.",
-        "image": "item_types/pineapple.png"
+        "image": "pineapple.png"
     },
     {
         "name": "Basil",
@@ -166,7 +166,7 @@ plants_data = [
         "uses": "Pesto, salads, pasta dishes, and garnishes.",
         "how_to_grow": "Thrives in warm weather and full sun. Pinch off flower buds to encourage leafy growth.",
         "how_to_use": "Use fresh leaves for the best flavor; add at the end of cooking.",
-        "image": "item_types/Basil.jpg"
+        "image": "Basil.jpg"
     },
     {
         "name": "Mint",
@@ -174,41 +174,20 @@ plants_data = [
         "uses": "Teas, cocktails (mojitos), desserts, and savory middle-eastern dishes.",
         "how_to_grow": "Very hardy and can be invasive; best grown in pots. Prefers moist soil and partial shade.",
         "how_to_use": "Pluck leaves as needed. Great fresh or dried.",
-        "image": "item_types/Mint.jpg"
-    },
-    {
-        "name": "Rosemary",
-        "description": "A woody, perennial herb with fragrant, evergreen, needle-like leaves.",
-        "uses": "Seasoning for meats, roasted vegetables, and breads.",
-        "how_to_grow": "Requires well-drained soil and full sun. It is drought-tolerant once established.",
-        "how_to_use": "Strip the needles from the woody stem and chop finely."
-    },
-    {
-        "name": "Dragon Fruit",
-        "description": "The fruit of several different cactus species indigenous to the Americas.",
-        "uses": "Fresh eating, smoothies, and decorative garnishes.",
-        "how_to_grow": "A climbing cactus that needs support and a warm, tropical climate.",
-        "how_to_use": "Slice in half and scoop out the speckled flesh with a spoon."
-    },
-    {
-        "name": "Passion Fruit",
-        "description": "A tropical fruit known for its intense aroma and tangy flavor.",
-        "uses": "Juices, desserts, cocktails, and yogurt toppings.",
-        "how_to_grow": "Grown on a vigorous climbing vine. Needs full sun and protection from strong winds.",
-        "how_to_use": "Cut in half and scoop out the pulpy seeds."
+        "image": "Mint.jpg"
     }
 ]
 
 def seed_plants():
-    print("Starting plant seeding with images...")
+    print("Starting plant seeding with static images...")
     count = 0
     for data in plants_data:
-        image_path = data.get('image', '')
-        if image_path:
-            full_path = os.path.join('media', image_path)
+        filename = data.get('image', '')
+        if filename:
+            full_path = os.path.join('static', 'img', 'item_types', filename)
             if not os.path.exists(full_path):
-                print(f"[WARNING] Image not found: {full_path}")
-                image_path = ''
+                print(f"[WARNING] Image not found in static: {full_path}")
+                filename = ''
         
         plant, created = Plant.objects.update_or_create(
             name=data['name'],
@@ -217,7 +196,7 @@ def seed_plants():
                 'uses': data['uses'],
                 'how_to_grow': data['how_to_grow'],
                 'how_to_use': data['how_to_use'],
-                'image': image_path
+                'image': filename
             }
         )
         if created:
