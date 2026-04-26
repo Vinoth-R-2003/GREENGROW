@@ -285,6 +285,35 @@
         })();
     </script>
 
+    <!-- Geolocation Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            {% if user.is_authenticated %}
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    // Send coordinates to backend to update user profile
+                    fetch("{% url 'update_location' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({
+                            latitude: latitude,
+                            longitude: longitude
+                        })
+                    }).then(response => response.json())
+                      .then(data => console.log('Location updated'))
+                      .catch(err => console.log('Location update failed', err));
+                });
+            }
+            {% endif %}
+        });
+    </script>
+
     <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {

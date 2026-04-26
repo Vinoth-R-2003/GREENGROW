@@ -33,29 +33,7 @@
         {% endif %}
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(function (position) {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
 
-                    // Send coordinates to backend
-                    fetch("{% url 'update_location' %}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        },
-                        body: JSON.stringify({
-                            latitude: latitude,
-                            longitude: longitude
-                        })
-                    }).catch(err => console.log('Location update failed', err));
-                });
-            }
-        });
-    </script>
 
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
         {% for item in items %}
