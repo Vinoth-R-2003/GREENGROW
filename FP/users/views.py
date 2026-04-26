@@ -8,6 +8,24 @@ import json
 from .forms import CustomUserCreationForm, ProfileEditForm
 from .models import User
 
+def setup_admin(request):
+    """Temporary view to create a superuser for the first time."""
+    username = "admin"
+    email = "admin@greengrow.com"
+    password = "GreenGrowAdmin123!" # Suggest changing this after login
+    
+    if User.objects.filter(is_superuser=True).exists():
+        return JsonResponse({"status": "error", "message": "Admin already exists."})
+    
+    user = User.objects.create_superuser(username, email, password)
+    return JsonResponse({
+        "status": "success", 
+        "message": "Admin created!",
+        "username": username,
+        "password": password,
+        "note": "DELETE THIS VIEW AFTER USE FOR SECURITY!"
+    })
+
 def register(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
