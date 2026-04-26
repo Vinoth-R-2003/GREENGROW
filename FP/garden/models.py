@@ -7,7 +7,15 @@ class Plant(models.Model):
     uses = models.TextField(verbose_name=_("Uses"))
     how_to_grow = models.TextField(verbose_name=_("How to Grow"))
     how_to_use = models.TextField(verbose_name=_("How to Use"))
-    image = models.ImageField(upload_to='garden/plants/', blank=True, null=True, verbose_name=_("Plant Image"))
+    image = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Plant Image"))
+    
+    def get_image_url(self):
+        if not self.image:
+            return None
+        from django.templatetags.static import static
+        if self.image.startswith('http'):
+            return self.image
+        return static(f'img/item_types/{self.image}')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

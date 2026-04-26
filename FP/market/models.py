@@ -3,10 +3,18 @@ from django.conf import settings
 
 class Item(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    # Using a URL field for simplicity in seeding, or FileField if uploading. 
-    # For this prototype, let's use a CharField for icon name/emoji or ImageField.
-    # User asked for "vegetables should be listed", so let's allow an image.
-    image = models.ImageField(upload_to='item_types/', blank=True, null=True)
+    # Changed to CharField to store filename for static serving
+    image = models.CharField(max_length=255, blank=True, null=True)
+
+    def get_image_url(self):
+        if not self.image:
+            return None
+        from django.templatetags.static import static
+        # If it's a full URL (Cloudinary), return as is
+        if self.image.startswith('http'):
+            return self.image
+        # Otherwise, serve from static/img/item_types/
+        return static(f'img/item_types/{self.image}')
 
     def __str__(self):
         return self.name
