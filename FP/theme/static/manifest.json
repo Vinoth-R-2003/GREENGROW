@@ -1,0 +1,22 @@
+{
+    "name": "GREENGROW - Smart Farming",
+    "short_name": "GREENGROW",
+    "description": "Connecting Farmers, Marketplace, and AI Agro-Intelligence.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#f8fafc",
+    "theme_color": "#10b981",
+    "icons": [
+        {
+            "src": "/static/img/logo_192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/static/img/logo_512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
