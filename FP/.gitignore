@@ -29,6 +29,8 @@ wheels/
 db.sqlite3
 db.sqlite3-journal
 media/
+!media/item_types/
+!media/garden/plants/
 staticfiles/
 
 # Environment
