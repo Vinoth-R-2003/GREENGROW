@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 from django.db.models import Avg
 from django.contrib import messages
 from django.conf import settings
@@ -78,7 +80,8 @@ def item_sellers(request, item_id):
             'distance': round(distance, 1) if distance is not None else None,
             'rating': round(avg_rating, 1) if avg_rating else None,
             'rating_count': seller.received_ratings.count(),
-            'is_following': is_following
+            'is_following': is_following,
+            'wishlisted_ids': list(request.user.wishlist.values_list('product_id', flat=True)) if request.user.is_authenticated else []
         })
     
     # Sort by distance
@@ -261,3 +264,74 @@ def payment_success(request, order_id):
     
     return redirect('order_detail', order_id=order.id)
 
+
+@login_required
+@require_POST
+def toggle_wishlist(request, product_id):
+    """Toggle a product in the user's wishlist."""
+    product = get_object_or_404(Product, id=product_id)
+    from .models import Wishlist
+    
+    wish_item, created = Wishlist.objects.get_or_create(user=request.user, product=product)
+    
+    if not created:
+        wish_item.delete()
+        added = False
+    else:
+        added = True
+        
+    return JsonResponse({
+        'status': 'success',
+        'added': added
+    })
+
+@login_required
+def wishlist_list(request):
+    """View the user's wishlisted items."""
+    from .models import Wishlist
+    wish_items = Wishlist.objects.filter(user=request.user).select_related('product', 'product__item', 'product__seller')
+    return render(request, 'market/wishlist.html', {'wish_items': wish_items})
+
+@login_required
+def seller_dashboard(request):
+    """A comprehensive dashboard for sellers to track sales and performance."""
+    from django.db.models import Sum, Count
+    from .models import Order, Product
+    
+    # Revenue stats
+    all_sales = Order.objects.filter(seller=request.user)
+    completed_sales = all_sales.filter(status='completed')
+    
+    total_revenue = completed_sales.aggregate(total=Sum('total_amount'))['total'] or 0
+    total_orders = all_sales.count()
+    pending_orders = all_sales.filter(status='pending').count()
+    confirmed_orders = all_sales.filter(status='confirmed').count()
+    
+    active_listings = Product.objects.filter(seller=request.user, is_available=True).count()
+    
+    # Recent sales
+    recent_sales = all_sales.order_by('-created_at')[:10]
+    
+    # Data for a simple sales chart (last 7 days)
+    from datetime import timedelta
+    from django.utils import timezone
+    
+    labels = []
+    data = []
+    for i in range(6, -1, -1):
+        day = timezone.now().date() - timedelta(days=i)
+        labels.append(day.strftime("%b %d"))
+        day_sales = completed_sales.filter(created_at__date=day).aggregate(total=Sum('total_amount'))['total'] or 0
+        data.append(float(day_sales))
+
+    context = {
+        'total_revenue': total_revenue,
+        'total_orders': total_orders,
+        'pending_orders': pending_orders,
+        'confirmed_orders': confirmed_orders,
+        'active_listings': active_listings,
+        'recent_sales': recent_sales,
+        'chart_labels': labels,
+        'chart_data': data,
+    }
+    return render(request, 'market/seller_dashboard.html', context)

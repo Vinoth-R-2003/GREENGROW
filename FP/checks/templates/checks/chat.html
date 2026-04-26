@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 h-[calc(100vh-160px)] flex flex-col">
+    <!-- Header -->
+    <div class="bg-white rounded-t-2xl shadow-sm border border-slate-200 p-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="font-bold text-slate-900">AgroBot Assistant</h1>
+                <p class="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                    <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Online | AI Powered Advice
+                </p>
+            </div>
+        </div>
+        <button onclick="clearChat()" class="text-slate-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50" title="Clear Chat">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Chat Area -->
+    <div id="chat-messages" class="flex-1 overflow-y-auto bg-slate-50 border-x border-slate-200 p-6 space-y-4">
+        <!-- Bot Welcome Message -->
+        <div class="flex items-start gap-3">
+            <div class="h-8 w-8 rounded-full bg-emerald-600 flex items-center justify-center text-white shrink-0 shadow-sm">
+                <span class="text-xs font-bold">AI</span>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-4 shadow-sm max-w-[80%]">
+                <p class="text-sm text-slate-800">Hello! I'm **AgroBot**. I can help you with plant health, soil advice, and farming tips. What's on your mind today?</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="bg-white rounded-b-2xl shadow-md border border-slate-200 p-4 border-t-0">
+        <form id="chat-form" class="flex items-center gap-2">
+            <input type="text" id="chat-input" placeholder="Type your farming question here..." 
+                class="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                autocomplete="off">
+            <button type="submit" id="send-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-xl shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+            </button>
+        </form>
+        <p class="text-[10px] text-slate-400 mt-2 text-center">AgroBot can make mistakes. Always check important facts with local authorities.</p>
+    </div>
+</div>
+
+<script>
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    
+    let chatHistory = [];
+
+    function appendMessage(text, isUser = false) {
+        const div = document.createElement('div');
+        div.className = `flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = `h-8 w-8 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm ${isUser ? 'bg-indigo-600' : 'bg-emerald-600'}`;
+        avatar.innerHTML = `<span class="text-xs font-bold">${isUser ? 'ME' : 'AI'}</span>`;
+        
+        const content = document.createElement('div');
+        content.className = `${isUser ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'} rounded-2xl p-4 shadow-sm max-w-[85%]`;
+        
+        // Simple markdown-ish bold support
+        let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        formattedText = formattedText.replace(/\n/g, '<br>');
+        
+        content.innerHTML = `<p class="text-sm leading-relaxed">${formattedText}</p>`;
+        
+        div.appendChild(avatar);
+        div.appendChild(content);
+        chatMessages.appendChild(div);
+        
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Update history
+        chatHistory.push({ text: text, is_user: isUser });
+    }
+
+    function addLoadingIndicator() {
+        const div = document.createElement('div');
+        div.id = 'loading-indicator';
+        div.className = 'flex items-start gap-3';
+        div.innerHTML = `
+            <div class="h-8 w-8 rounded-full bg-emerald-600 flex items-center justify-center text-white shrink-0 shadow-sm">
+                <span class="text-xs font-bold">AI</span>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-4 shadow-sm flex items-center gap-1">
+                <span class="h-2 w-2 rounded-full bg-slate-300 animate-bounce"></span>
+                <span class="h-2 w-2 rounded-full bg-slate-300 animate-bounce [animation-delay:-0.15s]"></span>
+                <span class="h-2 w-2 rounded-full bg-slate-300 animate-bounce [animation-delay:-0.3s]"></span>
+            </div>
+        `;
+        chatMessages.appendChild(div);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removeLoadingIndicator() {
+        const indicator = document.getElementById('loading-indicator');
+        if (indicator) indicator.remove();
+    }
+
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        chatInput.value = '';
+        chatInput.disabled = true;
+        sendBtn.disabled = true;
+        
+        appendMessage(message, true);
+        addLoadingIndicator();
+
+        try {
+            const response = await fetch("{% url 'agro_chat_api' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    message: message,
+                    history: chatHistory.slice(-6) // Send last 6 messages for context
+                })
+            });
+            
+            const data = await response.json();
+            removeLoadingIndicator();
+            
+            if (data.status === 'success') {
+                appendMessage(data.response, false);
+            } else {
+                appendMessage("Sorry, I encountered an error. Please try again.");
+            }
+        } catch (err) {
+            removeLoadingIndicator();
+            appendMessage("Connection error. Please check your internet.");
+        } finally {
+            chatInput.disabled = false;
+            sendBtn.disabled = false;
+            chatInput.focus();
+        }
+    });
+
+    function clearChat() {
+        if (confirm("Clear this conversation?")) {
+            chatMessages.innerHTML = '';
+            chatHistory = [];
+            appendMessage("Chat cleared. How else can I help you?");
+        }
+    }
+</script>
+{% endblock %}

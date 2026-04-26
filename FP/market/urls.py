@@ -15,4 +15,7 @@ urlpatterns = [
     path('order/<int:order_id>/feedback/', views.submit_feedback, name='submit_feedback'),
     path('payment/<int:order_id>/', views.payment_process, name='payment_process'),
     path('payment/success/<int:order_id>/', views.payment_success, name='payment_success'),
+    path('seller/dashboard/', views.seller_dashboard, name='seller_dashboard'),
+    path('wishlist/', views.wishlist_list, name='wishlist_list'),
+    path('wishlist/toggle/<int:product_id>/', views.toggle_wishlist, name='toggle_wishlist'),
 ]

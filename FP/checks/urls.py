@@ -7,4 +7,6 @@ urlpatterns = [
     path('result/<int:pk>/', views.check_result, name='check_result'),
     path('history/', views.check_history, name='check_history'),
     path('delete/<int:pk>/', views.delete_check, name='delete_check'),
+    path('chat/', views.agro_chat, name='agro_chat'),
+    path('chat/api/', views.agro_chat_api, name='agro_chat_api'),
 ]

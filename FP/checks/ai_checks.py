@@ -441,3 +441,57 @@ Return strictly in the following JSON format ONLY:
             raise ValueError(f"AI search failed: {e}")
 
     raise ValueError(f"AI search failed after retries: {last_error}")
+
+# ---------------------------------------------------------------------------
+# Google Gemini — Agro-Assistant Chat
+# ---------------------------------------------------------------------------
+
+def get_agro_advice(prompt, history=None):
+    """
+    Use Google Gemini AI to provide general farming advice.
+    history: List of previous messages for context
+    """
+    from google import genai
+    from django.conf import settings
+
+    api_key = getattr(settings, "GEMINI_API_KEY", "")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY is not configured in settings.")
+
+    client = genai.Client(api_key=api_key)
+
+    system_instruction = """You are 'AgroBot', the expert AI assistant for the GREENGROW platform. 
+    Your goal is to help farmers and gardeners with practical, sustainable, and scientific advice.
+    You can answer questions about:
+    - Plant health and diseases
+    - Soil preparation and fertilizers
+    - Sowing seasons and crop rotation
+    - Pest control (prefer organic methods)
+    - Marketplace selling tips
+    
+    Keep your answers concise, helpful, and supportive. Use bullet points for steps.
+    If you are unsure about a specific local condition, suggest consulting a local agronomist.
+    Support English and Tamil languages."""
+
+    try:
+        # Build contents with history if provided
+        contents = []
+        if history:
+            for msg in history:
+                role = "user" if msg['is_user'] else "model"
+                contents.append({"role": role, "parts": [{"text": msg['text']}]})
+        
+        contents.append({"role": "user", "parts": [{"text": prompt}]})
+
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=contents,
+            config={
+                "system_instruction": system_instruction,
+            }
+        )
+        return response.text.strip()
+
+    except Exception as e:
+        print(f"Agro-AI Error: {e}")
+        return "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again in a moment."

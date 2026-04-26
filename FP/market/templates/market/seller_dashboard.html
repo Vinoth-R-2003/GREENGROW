@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Seller Center — GREENGROW{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-slate-900">Seller Center</h1>
+        <p class="text-slate-500 text-lg">Manage your business and track your performance.</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <!-- Revenue Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="h-12 w-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 text-2xl">
+                    💰
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Revenue</p>
+                    <h3 class="text-2xl font-bold text-slate-900">₹{{ total_revenue }}</h3>
+                </div>
+            </div>
+            <div class="h-1 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full bg-emerald-500" style="width: 70%;"></div>
+            </div>
+        </div>
+
+        <!-- Orders Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="h-12 w-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-2xl">
+                    📦
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Orders</p>
+                    <h3 class="text-2xl font-bold text-slate-900">{{ total_orders }}</h3>
+                </div>
+            </div>
+            <div class="flex justify-between text-xs font-medium">
+                <span class="text-yellow-600">{{ pending_orders }} Pending</span>
+                <span class="text-blue-600">{{ confirmed_orders }} Confirmed</span>
+            </div>
+        </div>
+
+        <!-- Active Listings -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="h-12 w-12 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 text-2xl">
+                    🛒
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Active Listings</p>
+                    <h3 class="text-2xl font-bold text-slate-900">{{ active_listings }}</h3>
+                </div>
+            </div>
+            <a href="{% url 'product_create' %}" class="text-xs font-bold text-purple-600 hover:underline">+ Add New Product</a>
+        </div>
+
+        <!-- Growth (Mocked) -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="h-12 w-12 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600 text-2xl">
+                    📈
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Performance</p>
+                    <h3 class="text-2xl font-bold text-slate-900">Good</h3>
+                </div>
+            </div>
+            <p class="text-xs text-slate-500">Sales are up 12% this week!</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Sales Chart -->
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-slate-900">Sales Overview</h2>
+                <span class="text-xs font-bold text-slate-400 uppercase">Last 7 Days</span>
+            </div>
+            <canvas id="salesChart" height="150"></canvas>
+        </div>
+
+        <!-- Recent Sales -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h2 class="text-lg font-bold text-slate-900">Recent Sales</h2>
+                <a href="{% url 'order_list' %}" class="text-xs font-bold text-emerald-600 hover:underline">View All</a>
+            </div>
+            <div class="divide-y divide-slate-50">
+                {% for sale in recent_sales %}
+                <div class="p-4 hover:bg-slate-50 transition-colors">
+                    <div class="flex justify-between items-start mb-1">
+                        <p class="text-sm font-bold text-slate-900">Order #{{ sale.id }}</p>
+                        <span class="text-emerald-600 font-bold text-sm">₹{{ sale.total_amount }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <p class="text-xs text-slate-500">by {{ sale.buyer.username }}</p>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase
+                            {% if sale.status == 'pending' %}bg-yellow-100 text-yellow-700
+                            {% elif sale.status == 'confirmed' %}bg-blue-100 text-blue-700
+                            {% elif sale.status == 'completed' %}bg-emerald-100 text-emerald-700
+                            {% else %}bg-red-100 text-red-700{% endif %}">
+                            {{ sale.status }}
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-12 text-center text-slate-400 italic">No sales recorded yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        const salesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [{
+                    label: 'Sales Revenue (₹)',
+                    data: {{ chart_data|safe }},
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9' },
+                        ticks: {
+                            callback: function(value) { return '₹' + value; }
+                        }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

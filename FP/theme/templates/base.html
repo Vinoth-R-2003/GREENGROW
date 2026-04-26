@@ -96,6 +96,20 @@
             document.documentElement.classList.add('dark-theme');
         }
     </script>
+    <style>
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #f1f5f9 25%, #f8fafc 50%, #f1f5f9 75%);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite linear;
+        }
+        .timeline-progress {
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
 </head>
 
 <body class="bg-slate-50 text-slate-900 leading-normal tracking-wide antialiased">
@@ -189,9 +203,19 @@
                                 class="block px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors rounded-t-lg">
                                 My Profile
                             </a>
+                            {% if user.is_farmer %}
+                            <a href="{% url 'seller_dashboard' %}"
+                                class="block px-4 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-50 transition-colors">
+                                📊 Seller Center
+                            </a>
+                            {% endif %}
                             <a href="{% url 'order_list' %}"
                                 class="block px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
                                 My Orders
+                            </a>
+                            <a href="{% url 'wishlist_list' %}"
+                                class="block px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                                My Wishlist
                             </a>
                             <a href="{% url 'settings' %}"
                                 class="block px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
@@ -205,6 +229,53 @@
                                     Logout
                                 </button>
                             </form>
+                        </div>
+                    </div>
+
+                    <!-- Notification Bell -->
+                    <div class="relative group" id="notificationDropdown">
+                        <button id="notificationButton" class="p-2 text-slate-500 hover:text-emerald-600 transition-colors relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            {% if unread_notifications_count > 0 %}
+                            <span class="absolute top-1.5 right-1.5 block h-4 w-4 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white flex items-center justify-center">
+                                {{ unread_notifications_count }}
+                            </span>
+                            {% endif %}
+                        </button>
+                        
+                        <!-- Notifications Dropdown -->
+                        <div id="notificationMenu" class="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 hidden z-50 overflow-hidden">
+                            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                                <h3 class="font-bold text-sm text-slate-900">Notifications</h3>
+                                <span class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase">{{ unread_notifications_count }} New</span>
+                            </div>
+                            <div class="max-h-80 overflow-y-auto">
+                                {% for notification in recent_notifications %}
+                                <a href="{{ notification.target_url|default:'#' }}" class="block p-4 hover:bg-slate-50 transition-colors border-b border-slate-50 {% if not notification.is_read %}bg-emerald-50/30{% endif %}">
+                                    <div class="flex gap-3">
+                                        <div class="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 shrink-0">
+                                            {{ notification.actor.username|slice:":1"|upper }}
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-slate-800">
+                                                <span class="font-bold text-slate-900">{{ notification.actor.username }}</span> 
+                                                {{ notification.verb }}
+                                            </p>
+                                            <p class="text-[10px] text-slate-400 mt-0.5">{{ notification.created_at|timesince }} ago</p>
+                                        </div>
+                                    </div>
+                                </a>
+                                {% empty %}
+                                <div class="p-8 text-center">
+                                    <p class="text-xs text-slate-400 italic">No new notifications</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <a href="#" class="block p-3 text-center text-xs font-bold text-emerald-600 hover:bg-emerald-50 transition-colors">
+                                View All Notifications
+                            </a>
                         </div>
                     </div>
 
@@ -282,6 +353,21 @@
                     }
                 });
             }
+
+            // Notification Toggle
+            const notifBtn = document.getElementById('notificationButton');
+            const notifMenu = document.getElementById('notificationMenu');
+            if (notifBtn && notifMenu) {
+                notifBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    notifMenu.classList.toggle('hidden');
+                });
+                document.addEventListener('click', function(e) {
+                    if (!notifMenu.contains(e.target) && !notifBtn.contains(e.target)) {
+                        notifMenu.classList.add('hidden');
+                    }
+                });
+            }
         })();
     </script>
 
@@ -328,6 +414,8 @@
             });
         }
     </script>
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </body>
 
 </html>

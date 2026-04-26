@@ -1,5 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 from django.contrib import messages
 from .models import PlantCheck
 from .forms import PlantCheckForm, CropRecommendationForm, EncyclopediaSearchForm
@@ -36,9 +38,17 @@ CHECK_TYPE_META = {
 @login_required
 def checks_dashboard(request):
     recent_checks = PlantCheck.objects.filter(user=request.user)[:6]
+    
+    # Get weather data if user has location
+    weather = None
+    if request.user.latitude and request.user.longitude:
+        from .weather import get_weather_data
+        weather = get_weather_data(request.user.latitude, request.user.longitude)
+        
     return render(request, 'checks/dashboard.html', {
         'check_types': CHECK_TYPE_META,
         'recent_checks': recent_checks,
+        'weather': weather,
     })
 
 
@@ -199,3 +209,31 @@ def delete_check(request, pk):
         messages.success(request, 'Check history record deleted successfully.')
         return redirect('check_history')
     return redirect('check_history')
+
+@login_required
+def agro_chat(request):
+    """Render the Agro-Assistant chat interface."""
+    return render(request, 'checks/chat.html')
+
+@login_required
+@require_POST
+def agro_chat_api(request):
+    """API endpoint for Agro-Assistant chat responses."""
+    import json
+    try:
+        data = json.loads(request.body)
+        prompt = data.get('message', '')
+        history = data.get('history', [])
+        
+        if not prompt:
+            return JsonResponse({'status': 'error', 'message': 'Empty message'}, status=400)
+            
+        from .ai_checks import get_agro_advice
+        response_text = get_agro_advice(prompt, history)
+        
+        return JsonResponse({
+            'status': 'success',
+            'response': response_text
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
