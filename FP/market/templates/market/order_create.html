@@ -18,7 +18,7 @@
         <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-lg mb-6">
             <div class="h-20 w-20 bg-emerald-100 rounded-lg flex items-center justify-center">
                 {% if product.item.image %}
-                <img src="{{ product.item.image.url }}" alt="{{ product.item.name }}" class="h-16 w-16 object-contain">
+                <img src="{{ product.item.get_image_url }}" alt="{{ product.item.name }}" class="h-16 w-16 object-contain">
                 {% else %}
                 <span class="text-3xl">🥬</span>
                 {% endif %}
