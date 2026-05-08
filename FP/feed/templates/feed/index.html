@@ -126,13 +126,13 @@
             </div>
 
             <div class="p-4">
-                <p class="text-slate-800 mb-3 whitespace-pre-wrap">{{ post.content }}</p>
-
                 {% if post.image %}
-                <div class="rounded-lg overflow-hidden border border-slate-100">
+                <div class="rounded-lg overflow-hidden border border-slate-100 mb-3">
                     <img src="{{ post.image.url }}" alt="Post image" class="w-full h-auto object-cover max-h-[500px]">
                 </div>
                 {% endif %}
+
+                <p class="text-slate-800 whitespace-pre-wrap">{{ post.content }}</p>
             </div>
 
             <div
