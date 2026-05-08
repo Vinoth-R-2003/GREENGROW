@@ -20,6 +20,34 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+# -- Auto-compile translations on server reload --
+import sys
+import os
+try:
+    locale_dir = os.path.join(settings.BASE_DIR, 'locale', 'ta', 'LC_MESSAGES')
+    po_file = os.path.join(locale_dir, 'django.po')
+    mo_file = os.path.join(locale_dir, 'django.mo')
+    
+    if os.path.exists(po_file) and not os.path.exists(mo_file):
+        print("Compiling django.mo using built-in pure Python msgfmt...")
+        import urllib.request
+        msgfmt_url = "https://raw.githubusercontent.com/python/cpython/main/Tools/i18n/msgfmt.py"
+        msgfmt_path = os.path.join(settings.BASE_DIR, 'msgfmt.py')
+        
+        if not os.path.exists(msgfmt_path):
+            urllib.request.urlretrieve(msgfmt_url, msgfmt_path)
+            
+        # Add BASE_DIR to sys.path temporarily to import msgfmt
+        if str(settings.BASE_DIR) not in sys.path:
+            sys.path.insert(0, str(settings.BASE_DIR))
+            
+        import msgfmt
+        msgfmt.make(po_file, mo_file)
+        print("Successfully generated django.mo!")
+except Exception as e:
+    print(f"Failed to generate django.mo: {e}")
+# ------------------------------------------------
+
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('admin/', admin.site.urls),
