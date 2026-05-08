@@ -150,6 +150,7 @@ USE_TZ = True
 LANGUAGES = [
     ('en', _('English')),
     ('ta', _('Tamil')),
+    ('te', _('Telugu')),
 ]
 
 LOCALE_PATHS = [

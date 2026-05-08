@@ -178,7 +178,7 @@
                                 {% get_available_languages as LANGUAGES %}
                                 {% for lang in LANGUAGES %}
                                     <option value="{{ lang.0 }}" {% if lang.0 == LANGUAGE_CODE %}selected{% endif %}>
-                                        {% if lang.0 == 'en' %}🇺🇸 EN{% elif lang.0 == 'ta' %}🇮🇳 தமிழ்{% else %}{{ lang.1 }}{% endif %}
+                                        {% if lang.0 == 'en' %}🇺🇸 EN{% elif lang.0 == 'ta' %}🇮🇳 தமிழ்{% elif lang.0 == 'te' %}🇮🇳 తెలుగు{% else %}{{ lang.1 }}{% endif %}
                                     </option>
                                 {% endfor %}
                             </select>
@@ -435,7 +435,7 @@
 
     <!-- Google Translate Auto-Translate -->
     {% get_current_language as LANGUAGE_CODE %}
-    {% if LANGUAGE_CODE == 'ta' %}
+    {% if LANGUAGE_CODE == 'ta' or LANGUAGE_CODE == 'te' %}
     <style>
         /* Hide Google Translate UI elements */
         body { top: 0 !important; }
@@ -446,18 +446,24 @@
     </style>
     <div id="google_translate_element"></div>
     <script type="text/javascript">
-        // Set the Google Translate cookie to force Tamil
-        if (document.cookie.indexOf("googtrans=/en/ta") === -1) {
-            document.cookie = "googtrans=/en/ta; path=/";
+        // Set the Google Translate cookie to force selected language
+        const langCode = "{{ LANGUAGE_CODE }}";
+        if (document.cookie.indexOf("googtrans=/en/" + langCode) === -1) {
+            // Clear old translate cookies first
+            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "googtrans=/en/" + langCode + "; path=/";
             if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
-                document.cookie = "googtrans=/en/ta; domain=." + location.hostname + "; path=/";
+                document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=." + location.hostname + "; path=/;";
+                document.cookie = "googtrans=/en/" + langCode + "; domain=." + location.hostname + "; path=/";
             }
+            // Reload to apply new language properly if we just set it
+            window.location.reload();
         }
         
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({
                 pageLanguage: 'en',
-                includedLanguages: 'ta',
+                includedLanguages: 'ta,te',
                 autoDisplay: false
             }, 'google_translate_element');
         }
@@ -466,9 +472,12 @@
     {% else %}
     <script type="text/javascript">
         // Clear the translation cookie if switching back to English
-        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
-            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=." + location.hostname + "; path=/;";
+        if (document.cookie.indexOf("googtrans=") !== -1) {
+            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+                document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=." + location.hostname + "; path=/;";
+            }
+            window.location.reload();
         }
     </script>
     {% endif %}
