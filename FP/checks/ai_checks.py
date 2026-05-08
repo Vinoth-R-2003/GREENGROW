@@ -13,10 +13,11 @@ from django.conf import settings
 PLANT_ID_ENDPOINT = "https://api.plant.id/v3/identification"
 
 
-def _encode_image(image_path):
+def _encode_image(image_file):
     """Encode image file to Base64 string for Plant.id API."""
-    with open(image_path, "rb") as f:
-        return base64.b64encode(f.read()).decode("ascii")
+    image_file.open('rb')
+    image_file.seek(0)
+    return base64.b64encode(image_file.read()).decode("ascii")
 
 
 def _severity_from_probability(probability):
@@ -32,7 +33,7 @@ def _severity_from_probability(probability):
     return "healthy"
 
 
-def analyze_plant_image(image_path, check_type):
+def analyze_plant_image(image_file, check_type):
     """
     Use the Plant.id v3 API to analyze a plant image.
     Supports check_type: 'health', 'disease', 'encyclopedia'
@@ -42,7 +43,7 @@ def analyze_plant_image(image_path, check_type):
     if not api_key:
         raise ValueError("PLANT_ID_API_KEY is not configured in settings.")
 
-    encoded_image = _encode_image(image_path)
+    encoded_image = _encode_image(image_file)
 
     # Build request payload — always request identification + health
     payload = {

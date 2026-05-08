@@ -120,7 +120,7 @@ def upload_check(request, check_type):
                                 from .ml_engine import analyze_plant_image as ml_analyze
                                 from .ml_engine import is_model_available
                                 if is_model_available():
-                                    result = ml_analyze(check.image.path, check_type)
+                                    result = ml_analyze(check.image, check_type)
                             except Exception as ml_err:
                                 # ML failed — will fall back to Gemini
                                 result = None
@@ -128,7 +128,7 @@ def upload_check(request, check_type):
                         # Fall back to Gemini AI if ML didn't produce a result
                         if result is None:
                             from .ai_checks import analyze_plant_image as ai_analyze
-                            result = ai_analyze(check.image.path, check_type)
+                            result = ai_analyze(check.image, check_type)
 
                     check.result_title = result['title']
                     check.result_summary = result['summary']

@@ -52,7 +52,7 @@ def _load_model():
         return None
 
 
-def _preprocess_image(image_path):
+def _preprocess_image(image_file):
     """
     Load and preprocess an image to match the training format:
     - Resize to 128×128
@@ -60,14 +60,16 @@ def _preprocess_image(image_path):
     - Normalize to [0, 1] (matching tf.keras.utils.image_dataset_from_directory)
     - Add batch dimension
     """
-    img = Image.open(image_path).convert('RGB')
+    image_file.open('rb')
+    image_file.seek(0)
+    img = Image.open(image_file).convert('RGB')
     img = img.resize((128, 128))
     img_array = np.array(img, dtype=np.float32) / 255.0
     img_array = np.expand_dims(img_array, axis=0)  # shape: (1, 128, 128, 3)
     return img_array
 
 
-def _get_prediction(image_path):
+def _get_prediction(image_file):
     """
     Run inference on an image and return (class_name, confidence, all_probs).
     Raises ValueError if the model can't be loaded.
@@ -78,7 +80,7 @@ def _get_prediction(image_path):
             _model_load_error or "ML model is not available."
         )
 
-    img_array = _preprocess_image(image_path)
+    img_array = _preprocess_image(image_file)
     predictions = model.predict(img_array, verbose=0)  # shape: (1, 38)
     probs = predictions[0]
 
@@ -94,7 +96,7 @@ def _get_prediction(image_path):
     # The current local ML model commonly misclassifies apple trees as squash.
     # We apply a heuristic: if the image name suggests an apple or we detect
     # the known squash false-positive, we override to Apple___Apple_scab.
-    if 'apple' in str(image_path).lower() or class_name == 'Squash___Powdery_mildew':
+    if 'apple' in str(image_file.name).lower() or class_name == 'Squash___Powdery_mildew':
         class_name = 'Apple___Apple_scab'
         confidence = 87.5
 
@@ -103,19 +105,19 @@ def _get_prediction(image_path):
 
 # ── Public API ──────────────────────────────────────────────────────────
 
-def analyze_plant_image(image_path, check_type):
+def analyze_plant_image(image_file, check_type):
     """
     Analyze a plant image using the trained ML model.
 
     Args:
-        image_path: Path to the uploaded image file.
+        image_file: Django File object for the uploaded image.
         check_type: One of 'health', 'disease', 'yield'.
 
     Returns:
         dict with keys: title, summary, severity, confidence, details,
         recommendations  — same shape as the Gemini-based ai_checks module.
     """
-    class_name, confidence, probs = _get_prediction(image_path)
+    class_name, confidence, probs = _get_prediction(image_file)
     info = get_info_for_class(class_name)
 
     if info is None:
