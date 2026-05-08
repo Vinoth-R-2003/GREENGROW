@@ -432,6 +432,46 @@
     </script>
     <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Google Translate Auto-Translate -->
+    {% get_current_language as LANGUAGE_CODE %}
+    {% if LANGUAGE_CODE == 'ta' %}
+    <style>
+        /* Hide Google Translate UI elements */
+        body { top: 0 !important; }
+        .skiptranslate iframe { display: none !important; }
+        #google_translate_element { display: none !important; }
+        .goog-te-spinner-pos { display: none !important; }
+        font { background-color: transparent !important; box-shadow: none !important; }
+    </style>
+    <div id="google_translate_element"></div>
+    <script type="text/javascript">
+        // Set the Google Translate cookie to force Tamil
+        if (document.cookie.indexOf("googtrans=/en/ta") === -1) {
+            document.cookie = "googtrans=/en/ta; path=/";
+            if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+                document.cookie = "googtrans=/en/ta; domain=." + location.hostname + "; path=/";
+            }
+        }
+        
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'ta',
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    {% else %}
+    <script type="text/javascript">
+        // Clear the translation cookie if switching back to English
+        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=." + location.hostname + "; path=/;";
+        }
+    </script>
+    {% endif %}
 </body>
 
 </html>
