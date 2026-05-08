@@ -22,7 +22,7 @@
             </div>
             <div>
                 <h2 class="text-2xl font-bold text-slate-900">Sellers having "{{ item.name }}"</h2>
-                <p class="text-slate-500">{{ results|length }} sellers found nearby</p>
+                <p class="text-slate-500">{{ results|length }} seller{{ results|pluralize }} found nearby</p>
             </div>
         </div>
     </div>
@@ -55,13 +55,11 @@
                                 <span class="text-slate-400">No ratings yet</span>
                                 {% endif %}
                                 <span class="text-slate-300">•</span>
-                                <span class="text-emerald-600 font-medium">
-                                    {% if item_data.distance is not None %}
-                                    {{ item_data.distance }} km away
-                                    {% else %}
-                                    Distance unknown
-                                    {% endif %}
-                                </span>
+                                {% if item_data.distance is not None %}
+                                <span class="text-emerald-600 font-medium">{{ item_data.distance }} km away</span>
+                                {% else %}
+                                <span class="text-slate-400 font-medium">Distance unknown</span>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
