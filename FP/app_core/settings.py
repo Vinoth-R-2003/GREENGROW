@@ -181,6 +181,9 @@ LOGOUT_REDIRECT_URL = '/'
 # Google Gemini AI API Key (used only for Crop Recommendation)
 GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
 
+# Hugging Face API Key (used for Agrobot Chat)
+HUGGINGFACE_API_KEY = config('HUGGINGFACE_API_KEY', default='')
+
 # Plant.id API Key (used for plant health, disease, and encyclopedia checks)
 PLANT_ID_API_KEY = config('PLANT_ID_API_KEY', default='')
 
