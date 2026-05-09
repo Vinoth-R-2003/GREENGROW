@@ -9,4 +9,5 @@ urlpatterns = [
     path('delete/<int:pk>/', views.delete_check, name='delete_check'),
     path('chat/', views.agro_chat, name='agro_chat'),
     path('chat/api/', views.agro_chat_api, name='agro_chat_api'),
+    path('train-agrobot/', views.train_agrobot_model, name='train_agrobot'),
 ]

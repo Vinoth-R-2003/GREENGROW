@@ -449,78 +449,42 @@ Return strictly in the following JSON format ONLY:
 
 def get_agro_advice(prompt, history=None):
     """
-    Use Hugging Face API with an Open-Source LLM (Llama-3) and Personal Knowledge Base (RAG).
+    Use the locally trained Agrobot intent model to provide advice.
+    Falls back to a default response if the model is not found or intent is unknown.
     """
     import os
-    import requests
-    from django.conf import settings
-
-    api_key = getattr(settings, "HUGGINGFACE_API_KEY", "")
-    if not api_key:
-        return "⚠️ HUGGINGFACE_API_KEY is not configured. Please add your free Hugging Face API key to the .env file!"
+    import joblib
+    import json
+    import random
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    knowledge_path = os.path.join(base_dir, 'agrobot_data', 'my_garden_knowledge.txt')
+    model_path = os.path.join(base_dir, 'ml_models', 'agrobot_model.pkl')
+    data_path = os.path.join(base_dir, 'agrobot_data', 'intents.json')
 
-    # Read personal knowledge base
-    personal_knowledge = ""
-    if os.path.exists(knowledge_path):
-        with open(knowledge_path, 'r', encoding='utf-8') as f:
-            personal_knowledge = f.read()
+    default_response = "I'm sorry, my local training data doesn't cover this topic yet. Please try asking about watering, pests, fertilizer, or soil preparation!"
 
-    system_instruction = f"""You are 'AgroBot', the expert AI assistant for the GREENGROW platform. 
-    Your goal is to help the user with practical, sustainable, and scientific farming advice.
-    Keep your answers concise, helpful, and supportive. Use bullet points for steps.
-    
-    IMPORTANT: You have been personally trained on the user's specific garden. Here is their garden profile:
-    ---
-    {personal_knowledge}
-    ---
-    Always prioritize this personal profile when giving advice!"""
-
-    # Build messages list
-    messages = [{"role": "system", "content": system_instruction}]
-    
-    if history:
-        for msg in history:
-            # history comes from the frontend as [{'text': '...', 'is_user': True/False}]
-            role = "user" if msg.get('is_user') else "assistant"
-            messages.append({"role": role, "content": msg.get('text', '')})
-            
-    messages.append({"role": "user", "content": prompt})
-
-    # Hugging Face Chat Completions API
-    # Using Llama-3-8B-Instruct as a powerful open-source conversational model
-    api_url = "https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3-8B-Instruct/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-        "messages": messages,
-        "max_tokens": 500,
-        "temperature": 0.7
-    }
+    if not os.path.exists(model_path):
+        return "⚠️ Agrobot model not found. Please visit http://127.0.0.1:8000/checks/train-agrobot/ to compile your AI brain!"
 
     try:
-        response = requests.post(api_url, headers=headers, json=payload, timeout=45)
+        pipeline = joblib.load(model_path)
         
-        if response.status_code == 200:
-            data = response.json()
-            return data["choices"][0]["message"]["content"].strip()
-        elif response.status_code == 429:
-            return "⚠️ Hugging Face API rate limit reached. Please wait a minute and try again."
-        elif response.status_code == 401:
-            return "⚠️ Invalid Hugging Face API Key. Please check your .env file."
-        elif response.status_code == 503:
-            # Model is loading (cold start)
-            return "⏳ The AI model is currently loading on Hugging Face servers. Please wait about 30 seconds and ask again!"
-        else:
-            return f"⚠️ API Error ({response.status_code}): {response.text[:200]}"
-            
-    except requests.exceptions.Timeout:
-        return "⚠️ Request to Hugging Face timed out. Please try again."
+        predicted_intent = pipeline.predict([prompt])[0]
+        confidence = max(pipeline.predict_proba([prompt])[0])
+        
+        if os.path.exists(data_path):
+            with open(data_path, 'r') as f:
+                data = json.load(f)
+                
+            if confidence < 0.3:
+                return default_response
+                
+            for intent in data['intents']:
+                if intent['tag'] == predicted_intent:
+                    return random.choice(intent['responses'])
+                    
+        return default_response
+
     except Exception as e:
-        print(f"HuggingFace API Error: {e}")
-        return f"I'm sorry, I encountered an error connecting to my AI brain: {e}"
+        print(f"Local Agrobot Error: {e}")
+        return f"I encountered an error accessing my local knowledge base: {e}"

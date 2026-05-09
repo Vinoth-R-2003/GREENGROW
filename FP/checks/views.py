@@ -237,3 +237,66 @@ def agro_chat_api(request):
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+def train_agrobot_model(request):
+    """
+    Train the Scikit-Learn intent classifier model for Agrobot via Web UI.
+    """
+    import os
+    import json
+    import joblib
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.pipeline import Pipeline
+    from django.http import HttpResponse
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    data_path = os.path.join(base_dir, 'agrobot_data', 'intents.json')
+    
+    if not os.path.exists(data_path):
+        return HttpResponse("Error: Intents data not found at " + data_path, status=404)
+
+    try:
+        with open(data_path, 'r') as f:
+            data = json.load(f)
+            
+        X_train = []
+        y_train = []
+        
+        for intent in data['intents']:
+            for pattern in intent['patterns']:
+                X_train.append(pattern)
+                y_train.append(intent['tag'])
+                
+        # Create an intent classification pipeline
+        pipeline = Pipeline([
+            ('tfidf', TfidfVectorizer(lowercase=True, stop_words='english', ngram_range=(1, 2))),
+            ('clf', RandomForestClassifier(n_estimators=100, random_state=42))
+        ])
+        
+        pipeline.fit(X_train, y_train)
+        
+        models_dir = os.path.join(base_dir, 'ml_models')
+        os.makedirs(models_dir, exist_ok=True)
+        
+        model_path = os.path.join(models_dir, 'agrobot_model.pkl')
+        joblib.dump(pipeline, model_path)
+        
+        return HttpResponse(f"""
+        <html>
+        <head><title>Training Complete</title></head>
+        <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+            <h1 style="color: green;">✅ Model Trained Successfully!</h1>
+            <p>Your personal Agrobot AI brain has been compiled and saved.</p>
+            <p>Loaded {{len(X_train)}} training patterns across {{len(set(y_train))}} intents.</p>
+            <p>Saved to: <code>{{model_path}}</code></p>
+            <br><br>
+            <a href="/checks/chat/" style="padding: 10px 20px; background: #10b981; color: white; text-decoration: none; border-radius: 5px;">Go to Chat</a>
+        </body>
+        </html>
+        """)
+        
+    except Exception as e:
+        return HttpResponse(f"Error during training: {str(e)}", status=500)
