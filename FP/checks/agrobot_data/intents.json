@@ -1,0 +1,106 @@
+{
+  "intents": [
+    {
+      "tag": "greeting",
+      "patterns": [
+        "Hi",
+        "How are you",
+        "Is anyone there?",
+        "Hello",
+        "Good day",
+        "Whats up"
+      ],
+      "responses": [
+        "Hello! I'm your AgroBot. How can I help you with your garden today?",
+        "Hi there! What farming or gardening questions do you have?",
+        "Greetings! How can I assist your crop growth today?"
+      ]
+    },
+    {
+      "tag": "goodbye",
+      "patterns": [
+        "cya",
+        "See you later",
+        "Goodbye",
+        "I am Leaving",
+        "Have a Good day"
+      ],
+      "responses": [
+        "Sad to see you go. Happy farming!",
+        "Goodbye! Feel free to ask if you need more gardening advice.",
+        "Bye! May your crops grow healthy!"
+      ]
+    },
+    {
+      "tag": "pest_control",
+      "patterns": [
+        "How to get rid of bugs?",
+        "What do I do about pests?",
+        "My plant has insects",
+        "Organic pest control",
+        "aphids on my leaves"
+      ],
+      "responses": [
+        "For organic pest control, try Neem oil mixed with water and a few drops of dish soap. Spray it on the affected areas.",
+        "Introducing beneficial insects like ladybugs can help control aphid populations naturally.",
+        "You can use a garlic or chili pepper spray as a natural deterrent against many common garden pests."
+      ]
+    },
+    {
+      "tag": "watering",
+      "patterns": [
+        "How often should I water my plants?",
+        "When to water tomatoes?",
+        "My soil is dry",
+        "Watering schedule"
+      ],
+      "responses": [
+        "It depends on the plant, but generally, it's best to water deeply and less frequently. Check the top inch of soil; if it's dry, it's time to water.",
+        "Water early in the morning to reduce evaporation and prevent fungal diseases.",
+        "Make sure your pots have good drainage to avoid waterlogging and root rot."
+      ]
+    },
+    {
+      "tag": "fertilizer",
+      "patterns": [
+        "What fertilizer should I use?",
+        "How to make plants grow faster?",
+        "NPK ratio",
+        "Best compost for vegetables"
+      ],
+      "responses": [
+        "A balanced NPK fertilizer (like 10-10-10) is good for general growth. Nitrogen (N) promotes leafy growth, Phosphorus (P) helps roots and flowers, and Potassium (K) promotes overall health.",
+        "Compost is an excellent organic fertilizer. You can mix it into the soil before planting.",
+        "For fruiting plants like tomatoes, switch to a fertilizer higher in Phosphorus and Potassium once they start flowering."
+      ]
+    },
+    {
+      "tag": "disease",
+      "patterns": [
+        "My leaves are turning yellow",
+        "Brown spots on leaves",
+        "Plant looks sick",
+        "Powdery mildew treatment"
+      ],
+      "responses": [
+        "Yellowing leaves can indicate overwatering, nutrient deficiency, or a pest issue. Check the soil moisture first.",
+        "If you see white powdery spots, it might be powdery mildew. Improve air circulation and avoid wetting the leaves. A baking soda spray can also help.",
+        "Remove severely diseased leaves immediately and do not compost them to prevent spreading."
+      ]
+    },
+    {
+      "tag": "soil_preparation",
+      "patterns": [
+        "How to prepare soil for planting?",
+        "What is the best soil type?",
+        "Improving soil quality",
+        "Soil pH"
+      ],
+      "responses": [
+        "To prepare your soil, clear the area of weeds and rocks, loosen the soil to a depth of 8-12 inches, and mix in organic matter like compost.",
+        "Most vegetables prefer slightly acidic soil with a pH between 6.0 and 7.0. You can get a soil testing kit to check yours.",
+        "Adding organic matter improves both sandy soil (by retaining water) and clay soil (by improving drainage)."
+      ]
+    }
+  ]
+}

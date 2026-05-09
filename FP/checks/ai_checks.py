@@ -449,50 +449,62 @@ Return strictly in the following JSON format ONLY:
 
 def get_agro_advice(prompt, history=None):
     """
-    Use Google Gemini AI to provide general farming advice.
-    history: List of previous messages for context
+    Use a local intent-matching system to provide advice based on intents.json.
+    No ML pre-training required; it reads the JSON directly.
     """
-    from google import genai
-    from django.conf import settings
+    import os
+    import json
+    import random
+    import re
 
-    api_key = getattr(settings, "GEMINI_API_KEY", "")
-    if not api_key:
-        raise ValueError("GEMINI_API_KEY is not configured in settings.")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    data_path = os.path.join(base_dir, 'agrobot_data', 'intents.json')
 
-    client = genai.Client(api_key=api_key)
+    default_response = "I'm sorry, my local knowledge base doesn't cover this topic yet. Please try asking about watering, pests, fertilizer, or soil preparation!"
 
-    system_instruction = """You are 'AgroBot', the expert AI assistant for the GREENGROW platform. 
-    Your goal is to help farmers and gardeners with practical, sustainable, and scientific advice.
-    You can answer questions about:
-    - Plant health and diseases
-    - Soil preparation and fertilizers
-    - Sowing seasons and crop rotation
-    - Pest control (prefer organic methods)
-    - Marketplace selling tips
-    
-    Keep your answers concise, helpful, and supportive. Use bullet points for steps.
-    If you are unsure about a specific local condition, suggest consulting a local agronomist.
-    Support English and Tamil languages."""
+    if not os.path.exists(data_path):
+        return "Intents file not found. Please ensure 'checks/agrobot_data/intents.json' exists."
 
     try:
-        # Build contents with history if provided
-        contents = []
-        if history:
-            for msg in history:
-                role = "user" if msg['is_user'] else "model"
-                contents.append({"role": role, "parts": [{"text": msg['text']}]})
-        
-        contents.append({"role": "user", "parts": [{"text": prompt}]})
+        with open(data_path, 'r') as f:
+            data = json.load(f)
+            
+        # Clean user prompt
+        words = re.findall(r'\w+', prompt.lower())
+        if not words:
+            return default_response
 
-        response = client.models.generate_content(
-            model="gemini-1.5-flash",
-            contents=contents,
-            config={
-                "system_instruction": system_instruction,
-            }
-        )
-        return response.text.strip()
+        best_intent = None
+        max_score = 0
+
+        for intent in data.get('intents', []):
+            intent_score = 0
+            for pattern in intent.get('patterns', []):
+                pattern_words = re.findall(r'\w+', pattern.lower())
+                if not pattern_words:
+                    continue
+                
+                # Calculate word overlap
+                overlap = set(words).intersection(set(pattern_words))
+                score = len(overlap) / len(pattern_words)
+                
+                # Bonus for exact substring match
+                if pattern.lower() in prompt.lower():
+                    score += 1.0
+                    
+                if score > intent_score:
+                    intent_score = score
+                    
+            if intent_score > max_score:
+                max_score = intent_score
+                best_intent = intent
+                
+        # Threshold to avoid completely random matches
+        if max_score >= 0.3 and best_intent:
+            return random.choice(best_intent['responses'])
+            
+        return default_response
 
     except Exception as e:
-        print(f"Agro-AI Error: {e}")
-        return "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again in a moment."
+        print(f"Local Agrobot Error: {e}")
+        return f"I encountered an error accessing my local knowledge base: {e}"
