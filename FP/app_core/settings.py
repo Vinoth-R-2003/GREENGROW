@@ -200,10 +200,10 @@ ML_MODEL_PATH = BASE_DIR / 'checks' / 'ml_models' / 'trained_plant_disease_model
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Cloudinary configuration — reads DIRECTLY from environment (bypasses .env file)
-_CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
-_CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '')
-_CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '')
+# Cloudinary configuration — reads from .env or environment variables
+_CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default='')
+_CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY', default='')
+_CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET', default='')
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': _CLOUDINARY_CLOUD_NAME,
@@ -213,7 +213,7 @@ CLOUDINARY_STORAGE = {
 }
 
 # Django 4.2+ STORAGES dictionary (replaces DEFAULT_FILE_STORAGE & STATICFILES_STORAGE)
-if _CLOUDINARY_CLOUD_NAME:
+if _CLOUDINARY_CLOUD_NAME and _CLOUDINARY_API_KEY and _CLOUDINARY_API_SECRET:
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
     STORAGES = {
@@ -224,7 +224,8 @@ if _CLOUDINARY_CLOUD_NAME:
             'BACKEND': 'whitenoise.storage.StaticFilesStorage',
         },
     }
-    print(f"[CLOUDINARY] Active — Cloud: {_CLOUDINARY_CLOUD_NAME}")
+    if DEBUG:
+        print(f"[CLOUDINARY] Active — Cloud: {_CLOUDINARY_CLOUD_NAME}")
 else:
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
@@ -236,7 +237,8 @@ else:
             'BACKEND': 'whitenoise.storage.StaticFilesStorage',
         },
     }
-    print("[CLOUDINARY] NOT configured — images will be lost on server restart!")
+    if DEBUG:
+        print("[CLOUDINARY] NOT configured — falling back to local file storage.")
 
 # Channels configuration
 ASGI_APPLICATION = 'app_core.asgi.application'
@@ -262,24 +264,32 @@ else:
 # MongoDB Configuration
 import mongoengine
 
+USE_MONGODB = config('USE_MONGODB', default=False, cast=bool)
 MONGODB_URI = config('MONGODB_URI', default='')
 MONGODB_DB_NAME = config('MONGODB_DB_NAME', default='farmers_platform')
 
-if MONGODB_URI:
-    # Connect to MongoDB Atlas
-    try:
-        mongoengine.connect(
-            db=MONGODB_DB_NAME,
-            host=MONGODB_URI,
-            alias='default',
-            connect=False,
-            serverSelectionTimeoutMS=5000,
-            connectTimeoutMS=5000
-        )
-        print(f"[OK] Connected to MongoDB: {MONGODB_DB_NAME}")
-    except Exception as e:
-        print(f"[WARNING] MongoDB connection failed: {e}. Using SQLite only.")
+if USE_MONGODB:
+    if MONGODB_URI:
+        # Connect to MongoDB Atlas lazily and avoid startup failures when Atlas is unavailable.
+        try:
+            mongoengine.connect(
+                db=MONGODB_DB_NAME,
+                host=MONGODB_URI,
+                alias='default',
+                connect=False,
+                serverSelectionTimeoutMS=5000,
+                connectTimeoutMS=5000
+            )
+            if DEBUG:
+                print(f"[OK] MongoDB connection initialized for {MONGODB_DB_NAME}")
+        except Exception as e:
+            if DEBUG:
+                print(f"[WARNING] MongoDB connection failed: {e}. Using SQLite only.")
+    else:
+        if DEBUG:
+            print("[WARNING] USE_MONGODB=True but MONGODB_URI is missing. Using SQLite only.")
 else:
-    print("[WARNING] MongoDB URI not found in .env file. Using SQLite only.")
+    if DEBUG:
+        print("[INFO] MongoDB support is disabled. Using SQLite for local development.")
 
 NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"
