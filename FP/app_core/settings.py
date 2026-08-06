@@ -106,16 +106,25 @@ WSGI_APPLICATION = 'app_core.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Use PostgreSQL in production, SQLite in development
+import socket
+
 DATABASE_URL = config('DATABASE_URL', default='')
 
 if DATABASE_URL:
     try:
+        db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+        db_host = db_config.get('HOST')
+        if db_host:
+            try:
+                socket.getaddrinfo(db_host, db_config.get('PORT') or 5432)
+            except OSError as exc:
+                raise ValueError(f"Database host name '{db_host}' is not resolvable: {exc}")
         DATABASES = {
-            'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+            'default': db_config
         }
     except Exception as e:
         if DEBUG:
-            print(f"[WARNING] Invalid DATABASE_URL: {e}. Falling back to SQLite.")
+            print(f"[WARNING] DATABASE_URL is invalid or unreachable: {e}. Falling back to SQLite.")
         DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.sqlite3',
