@@ -1,1 +1,1 @@
-web: daphne -b 0.0.0.0 -p $PORT app_core.asgi:application
+web: python manage.py migrate && python seed_items.py && python seed_plants.py && daphne -b 0.0.0.0 -p $PORT app_core.asgi:application
