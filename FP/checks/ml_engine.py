@@ -11,9 +11,14 @@ The model was trained on the PlantVillage dataset (38 classes, ~96% accuracy).
 """
 
 import os
-import numpy as np
 from PIL import Image
 from django.conf import settings
+
+try:
+    import numpy as np
+except ImportError:
+    np = None
+
 
 from .disease_knowledge import CLASS_NAMES, DISEASE_DATABASE, get_info_for_class
 
@@ -60,6 +65,8 @@ def _preprocess_image(image_file):
     - Normalize to [0, 1] (matching tf.keras.utils.image_dataset_from_directory)
     - Add batch dimension
     """
+    if np is None:
+        raise ValueError("NumPy is required for ML analysis but is not installed.")
     image_file.open('rb')
     image_file.seek(0)
     img = Image.open(image_file).convert('RGB')
@@ -360,6 +367,8 @@ def predict_crop(temperature, soil_type, rainfall, proposed_crop=None):
     """
     Predict optimal crop using the locally trained Scikit-Learn RandomForest model.
     """
+    if np is None:
+        raise ValueError("NumPy is required for ML crop prediction but is not installed.")
     import pandas as pd
     import joblib
     import os
@@ -383,7 +392,7 @@ def predict_crop(temperature, soil_type, rainfall, proposed_crop=None):
     
     # Predict
     try:
-        predicted_crop = pipeline.predict(input_data)[0]
+        predicted_crop = str(pipeline.predict(input_data)[0])
         # Get probability to represent confidence
         probs = pipeline.predict_proba(input_data)[0]
         confidence = float(max(probs)) * 100
@@ -398,7 +407,7 @@ def predict_crop(temperature, soil_type, rainfall, proposed_crop=None):
     if proposed_crop:
         proposed_crop_lower = str(proposed_crop).lower().strip()
         classes = pipeline.classes_
-        classes_lower = [c.lower() for c in classes]
+        classes_lower = [str(c).lower() for c in classes]
         
         if proposed_crop_lower in classes_lower:
             idx = classes_lower.index(proposed_crop_lower)
@@ -419,7 +428,7 @@ def predict_crop(temperature, soil_type, rainfall, proposed_crop=None):
         
     # Find alternatives
     top_3_idx = np.argsort(probs)[-3:][::-1]
-    alternatives = [pipeline.classes_[i] for i in top_3_idx if pipeline.classes_[i] != predicted_crop]
+    alternatives = [str(pipeline.classes_[i]) for i in top_3_idx if str(pipeline.classes_[i]) != predicted_crop]
         
     title = f"Ideal for {predicted_crop} Cultivation"
     summary = f"Based on your environmental conditions (Temp: {temperature}°C, Rain: {rainfall}mm, Soil: {soil_type}), our offline Machine Learning model highly recommends growing {predicted_crop}." + summary_extra

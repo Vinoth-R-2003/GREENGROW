@@ -94,7 +94,7 @@ def train_model(output_path=None):
     accuracy = pipeline.score(X_test, y_test)
     print(f"[INFO] Model Accuracy on test set: {accuracy:.4f}")
     
-    print(f"[INFO] Saving model to: {output_path}")
+    print(f"[INFO] Saving model to: {os.path.basename(output_path)}")
     joblib.dump(pipeline, output_path)
     print("[INFO] Training complete! You can now use this model for fast offline predictions.")
 
