@@ -14,17 +14,20 @@ class CaseInsensitiveModelBackend(ModelBackend):
             return None
 
         try:
-            user = UserModel._default_manager.get(**{
-                f"{UserModel.USERNAME_FIELD}__iexact": username
-            })
-        except UserModel.DoesNotExist:
-            UserModel().set_password(password)
-            return None
-        except UserModel.MultipleObjectsReturned:
-            user = UserModel._default_manager.filter(**{
-                f"{UserModel.USERNAME_FIELD}__iexact": username
-            }).first()
+            try:
+                user = UserModel._default_manager.get(**{
+                    f"{UserModel.USERNAME_FIELD}__iexact": username
+                })
+            except UserModel.DoesNotExist:
+                UserModel().set_password(password)
+                return None
+            except UserModel.MultipleObjectsReturned:
+                user = UserModel._default_manager.filter(**{
+                    f"{UserModel.USERNAME_FIELD}__iexact": username
+                }).first()
 
-        if user and user.check_password(password) and self.user_can_authenticate(user):
-            return user
+            if user and user.check_password(password) and self.user_can_authenticate(user):
+                return user
+        except Exception:
+            return super().authenticate(request, username=username, password=password, **kwargs)
         return None
