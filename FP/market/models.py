@@ -2,7 +2,13 @@ from django.db import models
 from django.conf import settings
 
 class Item(models.Model):
+    CATEGORY_CHOICES = [
+        ('Vegetables', 'Vegetables'),
+        ('Fruits', 'Fruits'),
+        ('Herbs', 'Herbs'),
+    ]
     name = models.CharField(max_length=100, unique=True)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='Vegetables')
     # Changed to CharField to store filename for static serving
     image = models.CharField(max_length=255, blank=True, null=True)
 

@@ -202,6 +202,11 @@ LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = '/'
 
+# Session Persistence Settings (Keeps user logged in for 2 weeks)
+SESSION_COOKIE_AGE = 1209600
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
 # Google Gemini AI API Key (used only for Crop Recommendation)
 GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
 

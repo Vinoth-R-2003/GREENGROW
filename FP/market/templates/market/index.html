@@ -1,17 +1,21 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block content %}
 <div class="px-4">
-    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+    <!-- Header & Search Bar -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <div>
             <h2 class="text-2xl font-bold text-slate-900">Fresh from the Farm</h2>
-            <p class="text-slate-500 text-sm">Find local produce near you</p>
+            <p class="text-slate-500 text-sm">Explore fresh vegetables, fruits, and herbs directly from local farmers</p>
         </div>
 
         <div class="flex-1 max-w-lg w-full">
             <form action="{% url 'market_search' %}" method="get" class="relative">
-                <input type="text" name="q" placeholder="Search for products (e.g., Tomato)..."
+                {% if selected_category and selected_category != 'All' %}
+                <input type="hidden" name="category" value="{{ selected_category }}">
+                {% endif %}
+                <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Search vegetables & fruits (e.g., Tomato, Mango)..."
                     class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 absolute left-3 top-3" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor">
@@ -33,28 +37,61 @@
         {% endif %}
     </div>
 
+    <!-- Category Filter Tabs -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar">
+        <a href="{% url 'market_index' %}"
+            class="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all {% if selected_category == 'All' or not selected_category %}bg-emerald-600 text-white shadow-md shadow-emerald-200{% else %}bg-white border border-slate-200 text-slate-600 hover:bg-slate-50{% endif %}">
+            🛒 All Categories
+        </a>
+        <a href="{% url 'market_index' %}?category=Vegetables"
+            class="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all {% if selected_category == 'Vegetables' %}bg-emerald-600 text-white shadow-md shadow-emerald-200{% else %}bg-white border border-slate-200 text-slate-600 hover:bg-slate-50{% endif %}">
+            🥦 Vegetables
+        </a>
+        <a href="{% url 'market_index' %}?category=Fruits"
+            class="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all {% if selected_category == 'Fruits' %}bg-emerald-600 text-white shadow-md shadow-emerald-200{% else %}bg-white border border-slate-200 text-slate-600 hover:bg-slate-50{% endif %}">
+            🍎 Fruits
+        </a>
+        <a href="{% url 'market_index' %}?category=Herbs"
+            class="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all {% if selected_category == 'Herbs' %}bg-emerald-600 text-white shadow-md shadow-emerald-200{% else %}bg-white border border-slate-200 text-slate-600 hover:bg-slate-50{% endif %}">
+            🌿 Herbs
+        </a>
+    </div>
 
-
+    <!-- Items Grid -->
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
         {% for item in items %}
         <a href="{% url 'item_sellers' item.id %}"
-            class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-lg transition-all group p-4 flex flex-col items-center">
-            <div
-                class="h-24 w-24 bg-emerald-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-lg transition-all group p-4 flex flex-col items-center relative">
+            
+            <!-- Category Badge -->
+            <span class="absolute top-3 left-3 text-[10px] font-bold px-2 py-0.5 rounded-full {% if item.category == 'Fruits' %}bg-amber-100 text-amber-800{% elif item.category == 'Herbs' %}bg-teal-100 text-teal-800{% else %}bg-emerald-100 text-emerald-800{% endif %}">
+                {{ item.category|default:"Vegetables" }}
+            </span>
+
+            <div class="h-28 w-28 bg-emerald-50/60 rounded-full flex items-center justify-center mb-3 mt-2 group-hover:scale-110 transition-transform relative overflow-hidden">
                 {% if item.image %}
-                <img src="{{ item.get_image_url }}" alt="{{ item.name }}" class="w-16 h-16 object-contain">
+                <img src="{{ item.get_image_url }}" alt="{{ item.name }}" class="w-20 h-20 object-contain drop-shadow-sm">
                 {% else %}
-                <span class="text-4xl">Vegetable</span>
+                <span class="text-4xl">🌱</span>
                 {% endif %}
             </div>
 
-            <h3 class="font-semibold text-slate-900 text-center">{{ item.name }}</h3>
-            <p class="text-xs text-slate-500 mt-1">{% trans "View Sellers" %}</p>
+            <h3 class="font-semibold text-slate-900 text-center text-base group-hover:text-emerald-600 transition-colors">{{ item.name }}</h3>
+            <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                <span>View Sellers</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </p>
         </a>
         {% empty %}
-        <div class="col-span-full text-center py-20">
+        <div class="col-span-full text-center py-20 bg-white rounded-2xl border border-slate-100 shadow-sm">
             <div class="text-6xl mb-4">📭</div>
             <h3 class="text-xl font-medium text-slate-900">No categories found</h3>
+            <p class="text-slate-500 text-sm mt-2">Try clearing your search query or selecting a different category tab.</p>
+            <a href="{% url 'market_index' %}" class="inline-block mt-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+                View All Categories
+            </a>
         </div>
         {% endfor %}
     </div>

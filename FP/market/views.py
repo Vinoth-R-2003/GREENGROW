@@ -38,8 +38,24 @@ from .utils import haversine
 
 
 def market_index(request):
-    items = Item.objects.all()
-    return render(request, 'market/index.html', {'items': items})
+    if not Item.objects.exists():
+        try:
+            from seed_items import seed_marketplace_items
+            seed_marketplace_items()
+        except Exception as e:
+            print(f"Auto-seed error: {e}")
+
+    category = request.GET.get('category', 'All')
+    if category and category != 'All':
+        items = Item.objects.filter(category__iexact=category)
+    else:
+        items = Item.objects.all()
+
+    return render(request, 'market/index.html', {
+        'items': items,
+        'selected_category': category,
+        'categories': ['All', 'Vegetables', 'Fruits', 'Herbs']
+    })
 
 def item_sellers(request, item_id):
     item = get_object_or_404(Item, id=item_id)
@@ -90,13 +106,28 @@ def item_sellers(request, item_id):
     return render(request, 'market/sellers_list.html', {'item': item, 'results': results})
 
 def search_products(request):
-    # Deprecated or redirect to filtered index? 
-    # For now, let's keep basic search matching Item name redirects to item_sellers if exact match, or list items
-    query = request.GET.get('q')
+    query = request.GET.get('q', '').strip()
+    category = request.GET.get('category', 'All')
+
+    if not Item.objects.exists():
+        try:
+            from seed_items import seed_marketplace_items
+            seed_marketplace_items()
+        except Exception:
+            pass
+
+    items = Item.objects.all()
     if query:
-        items = Item.objects.filter(name__icontains=query)
-        return render(request, 'market/index.html', {'items': items})
-    return redirect('market_index')
+        items = items.filter(name__icontains=query)
+    if category and category != 'All':
+        items = items.filter(category__iexact=category)
+
+    return render(request, 'market/index.html', {
+        'items': items,
+        'query': query,
+        'selected_category': category,
+        'categories': ['All', 'Vegetables', 'Fruits', 'Herbs']
+    })
 
 @login_required
 def product_create(request):
