@@ -5,6 +5,9 @@ cd "$(dirname "$0")"
 # Run database migrations before starting the app.
 python manage.py migrate --noinput
 
+# Seed marketplace items
+python seed_items.py || true
+
 # Collect static files for WhiteNoise/production serving.
 python manage.py collectstatic --noinput
 
